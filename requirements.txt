@@ -12,3 +12,5 @@ pyparsing==2.4.7
 pytest==6.2.4
 toml==0.10.2
 wrapt==1.12.1
+
+requests~=2.25.1
