@@ -109,15 +109,10 @@ class TestClass:
 
     def test_linting(self):
         global code_style_points
-        output, points_off = code_style.code_style('interest.py')
-        if points_off > 0:
-            code_style_points -= code_style_points if points_off > code_style_points else points_off
-            print("\nFAILED")
-            print(output)
-            print('-' + str(points_off))
+        points = code_style.code_style('interest.py', code_style_points)
+        if not points == code_style_points:
+            code_style_points = points
             pytest.xfail(reason="Failed Code Style")
-        else:
-            print("\nCode Style PASSED")
 
     @pytest.fixture(scope='session', autouse=True)
     def summary(self):
