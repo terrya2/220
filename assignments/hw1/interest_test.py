@@ -4,6 +4,7 @@ import random
 import requests
 from tests import code_style
 from hw1 import interest
+from tests import api_service
 
 total = 0
 global_points = 5
@@ -60,10 +61,7 @@ class TestClass:
         global global_points
         failed = 0
         data = self.makeTestData(10)
-        parameters = {"key": "54bc1a55-6e05-44a8-80c0-9bd44b67ad8d"}
-        header = {"content-type": "application/json"}
-        response = requests.post("https://baier-api.herokuapp.com/220/hw1", params=parameters, json=data,
-                                 headers=header)
+        response = api_service.test(data, 'hw1')
         expected_answer_list = json.loads(response.text)
         actual_answer_list = []
         for attempt in data:
