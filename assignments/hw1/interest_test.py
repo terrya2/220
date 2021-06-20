@@ -14,17 +14,29 @@ code_style_points = 20
 class TestClass:
 
     def test_input(self, monkeypatch, capfd):
-        global total
-        global global_points
-        failed = 0
         inputs = [
             (['15.84', '31', '850', '400', '20'], '9.35'),
             (['7.07', '30', '700', '100', '1'], '3.55'),
             (['0', '29', '0', '100', '29'], '0.0'),
             (['99', '31', '1234', '1234', '31'], '101.81')
         ]
+        self.run_test(inputs, 'static tests', monkeypatch, capfd)
+
+    def test_api(self, monkeypatch, capfd):
+        data = self.make_test_data(10)
+        response = api_service.test(data, 'hw1')
+        answers = json.loads(response.text)
+        test_data = self.convert_test_data(data, answers)
+        self.run_test(test_data, 'api tests', monkeypatch, capfd)
+
+
+    @staticmethod
+    def run_test(data, test_type, monkeypatch, capfd):
+        global total
+        global global_points
+        failed = 0
         outputs = []
-        for inp in inputs:
+        for inp in data:
             userIn = inp[0]
             i = iter(userIn)
             monkeypatch.setattr('builtins.input', lambda inputMessage: next(i))
@@ -32,21 +44,20 @@ class TestClass:
             captured = capfd.readouterr()
             outputs.append(captured.out.strip())
 
-        print('\n\n============================== static tests start ===============================\n')
+        print(f'\n\n============================== {test_type} start ===============================\n')
         for index, actual in enumerate(outputs):
-            expected = inputs[index][1]
+            expected = data[index][1]
             test_result = actual == expected
             if not test_result:
                 print(f'FAILED -{str(global_points)}')
                 print(f'\texpected {expected} but got {actual}')
-                data = inputs[index][0]
-                a = {'rate': float(data[0]),
-                     'days': float(data[1]),
-                     'previous_balance': float(data[2]),
-                     'payment': float(data[3]),
-                     'payment_day': float(data[4])
+                used_data = {'rate': float(data[index][0][0]),
+                     'days': float(data[index][0][1]),
+                     'previous_balance': float(data[index][0][2]),
+                     'payment': float(data[index][0][3]),
+                     'payment_day': float(data[index][0][4])
                      }
-                print(f'\tdata: {a}')
+                print(f'\tdata: {used_data}')
                 failed += 1
             else:
                 print(f'PASSED +{str(global_points)}')
@@ -56,32 +67,13 @@ class TestClass:
             noun = 'test'
         print(f'\n============================== {failed} {noun} failed ===============================\n')
 
-    def test_api(self, monkeypatch, capfd):
-        global total
-        global global_points
-        failed = 0
-        data = self.makeTestData(10)
-        response = api_service.test(data, 'hw1')
-        expected_answer_list = json.loads(response.text)
-        actual_answer_list = []
-        for attempt in data:
-            actual_answer_list.append(self.getOutput(attempt, monkeypatch, capfd))
-            # actual_answer_list.append(1)
-        print('\n\n============================== random tests start ===============================\n')
-        for index, attempt in enumerate(data):
-            test_result = actual_answer_list[index] == expected_answer_list[index]
-            if not test_result:
-                print(f'FAILED -{str(global_points)}')
-                print(f'\texpected {str(expected_answer_list[index])} but got {str(actual_answer_list[index])}')
-                print(f'\tdata: {attempt}')
-                failed += 1
-            else:
-                print(f'PASSED +{str(global_points)}')
-                total = total + global_points
-        noun = 'tests'
-        if failed == 1:
-            noun = 'test'
-        print(f'\n============================== {failed} {noun} failed ===============================\n')
+    @staticmethod
+    def convert_test_data(data, response):
+        inputs = []
+        for index, values in enumerate(data):
+            input = list(map(str, [values['rate'], values['days'], values['previousBalance'], values['payment'], values['paymentDay']]))
+            inputs.append((input, str(response[index])))
+        return inputs
 
     @staticmethod
     def getOutput(attempt, monkeypatch, capfd):
@@ -93,7 +85,7 @@ class TestClass:
         return float(captured.out.strip())
 
     @staticmethod
-    def makeTestData(num):
+    def make_test_data(num):
         output = []
         for i in range(num):
             rate = random.randint(0, 100)
