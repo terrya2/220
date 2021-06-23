@@ -3,27 +3,29 @@ a lump sum of points are awarded per test.
 you cannot lose more points for a test than the max points per test
 """
 
-import pytest
 import random
-from tests.code_style import code_style
-from hw3 import traffic
-from tests.hw3.TestCase import TestCase, Road
 
-# TODO: parse colon from input
+import pytest
+
+from hw3 import traffic
+from tests.code_style import code_style
+from tests.hw3.TestCase import TestCase, Road
 
 total = 0
 points_per_test = 5
 sub_points = 1
 code_style_points = 10
 
+
 def input_map(sentence):
     return float(sentence.split(':')[1].strip())
+
 
 class TestClass:
 
     def test_output(self, monkeypatch, capfd):
         road11 = Road(1, [20, 30, 15, 45])
-        road12 = Road(2, [40,30,50])
+        road12 = Road(2, [40, 30, 50])
         road13 = Road(3, [30, 60, 15, 55, 20])
         test1 = TestCase([road11, road12, road13])
         road21 = Road(1, [1])
@@ -91,18 +93,17 @@ class TestClass:
         noun = 'test' if num_failed == 1 else 'tests'
         print(f'\n============================== {failed} {noun} failed ===============================\n')
 
-
     @staticmethod
     def make_test_data(num):
         data = []
         for i in range(num):
             roads = []
-            number_of_roads = random.randint(1,10)
+            number_of_roads = random.randint(1, 10)
             for road in range(number_of_roads):
                 cars_per_day = []
-                number_of_days = random.randint(1,20)
+                number_of_days = random.randint(1, 20)
                 for day in range(number_of_days):
-                    cars_per_day.append(random.randint(1,20))
+                    cars_per_day.append(random.randint(1, 20))
                 id = road + 1
                 roads.append(Road(id, cars_per_day))
             data.append(TestCase(roads))
