@@ -24,7 +24,7 @@ class TestClass:
 
     def test_api(self, monkeypatch, capfd):
         data = self.make_test_data(10)
-        response = api_service.test(data, 'hw1')
+        response = api_service.test('hw1', 'POST', data)
         answers = json.loads(response.text)
         test_data = self.convert_test_data(data, answers)
         self.run_test(test_data, 'api tests', monkeypatch, capfd)
