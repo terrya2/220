@@ -25,7 +25,7 @@ class TestClass:
         self.run_test(inputs, 'static tests', monkeypatch, capfd)
 
     def test_api(self, monkeypatch, capfd):
-        response = api_service.test('hw2', 'GET', params={'number': 13})
+        response = api_service.test('hw2', 'GET', params={'number': 9})
         data = json.loads(response.text)
         input = data['data']
         answers = data['answers']
