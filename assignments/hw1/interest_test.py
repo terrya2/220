@@ -23,12 +23,12 @@ class TestClass:
         self.run_test(inputs, 'static tests', monkeypatch, capfd)
 
     def test_api(self, monkeypatch, capfd):
-        data = self.make_test_data(10)
-        response = api_service.test('hw1', 'POST', data)
-        answers = json.loads(response.text)
-        test_data = self.convert_test_data(data, answers)
+        response = api_service.test('hw1', 'GET', params={'number': 12})
+        data = json.loads(response.text)
+        input = data['data']
+        answers = data['answers']
+        test_data = self.convert_test_data(input, answers)
         self.run_test(test_data, 'api tests', monkeypatch, capfd)
-
 
     @staticmethod
     def run_test(data, test_type, monkeypatch, capfd):
@@ -52,11 +52,11 @@ class TestClass:
                 print(f'FAILED -{str(global_points)}')
                 print(f'\texpected {expected} but got {actual}')
                 used_data = {'rate': float(data[index][0][0]),
-                     'days': float(data[index][0][1]),
-                     'previous_balance': float(data[index][0][2]),
-                     'payment': float(data[index][0][3]),
-                     'payment_day': float(data[index][0][4])
-                     }
+                             'days': float(data[index][0][1]),
+                             'previous_balance': float(data[index][0][2]),
+                             'payment': float(data[index][0][3]),
+                             'payment_day': float(data[index][0][4])
+                             }
                 print(f'\tdata: {used_data}')
                 failed += 1
             else:
@@ -71,7 +71,8 @@ class TestClass:
     def convert_test_data(data, response):
         inputs = []
         for index, values in enumerate(data):
-            input = list(map(str, [values['rate'], values['days'], values['previousBalance'], values['payment'], values['paymentDay']]))
+            input = list(map(str, [values['rate'], values['days'], values['previousBalance'], values['payment'],
+                                   values['paymentDay']]))
             inputs.append((input, str(response[index])))
         return inputs
 
@@ -83,19 +84,6 @@ class TestClass:
         interest.main()
         captured = capfd.readouterr()
         return float(captured.out.strip())
-
-    @staticmethod
-    def make_test_data(num):
-        output = []
-        for i in range(num):
-            rate = random.randint(0, 100)
-            days = random.randint(1, 31)
-            previous_balance = random.randint(500, 1000)
-            payment = random.randint(0, 500)
-            payment_day = random.randint(0, 31)
-            output.append({'rate': rate, 'days': days, 'previousBalance': previous_balance, 'payment': payment,
-                           'paymentDay': payment_day})
-        return output
 
     def test_linting(self):
         global code_style_points
