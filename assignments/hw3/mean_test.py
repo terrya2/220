@@ -3,7 +3,7 @@ import pytest
 import random
 import requests
 from tests import code_style
-from hw2 import mean
+from hw3 import mean
 from tests import api_service
 
 total = 0

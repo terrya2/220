@@ -3,7 +3,7 @@ import pytest
 import random
 import requests
 from tests import code_style
-from hw1 import interest
+from hw2 import interest
 from tests import api_service
 
 total = 0

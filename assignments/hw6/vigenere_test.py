@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from hw5 import vigenere
+from hw6 import vigenere
 from tests import api_service
 from tests import code_style
 

@@ -4,7 +4,7 @@ import time
 import pytest
 from graphics import GraphWin, Circle, Point
 
-from hw7 import bumper
+from hw8 import bumper
 from tests import api_service
 from tests import code_style
 from tests.hw7.test_case import TestCase, Result, Results

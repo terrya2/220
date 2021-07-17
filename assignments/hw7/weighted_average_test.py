@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from hw6.weighted_average import weighted_average
+from hw7.weighted_average import weighted_average
 from tests import api_service
 from tests import code_style
 
