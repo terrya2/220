@@ -9,7 +9,7 @@ def code_style(file, total_points, rcfile='../../.pylintrc'):
     code_style_points = 0 if points_off > total_points else total_points - points_off
     passed = points_off <= 0
     if passed:
-        print("\nCode Style PASSED")
+        print("\nPASSED", f"+{total_points}")
     else:
         print("\nFAILED")
         print(output)
