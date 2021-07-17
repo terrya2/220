@@ -1,10 +1,10 @@
 import json
+
 import pytest
-import random
-import requests
-from tests import code_style
+
 from hw2 import interest
 from tests import api_service
+from tests import code_style
 
 total = 0
 global_points = 5
@@ -87,9 +87,10 @@ class TestClass:
 
     def test_linting(self):
         global code_style_points
+        global total
         points = code_style.code_style('interest.py', code_style_points)
+        total += points
         if not points == code_style_points:
-            code_style_points = points
             pytest.xfail(reason="Failed Code Style")
 
     @pytest.fixture(scope='session', autouse=True)
@@ -99,4 +100,4 @@ class TestClass:
         # Will be executed before the first test
         yield
         # Will be executed after the last test
-        print(f'\nTotal: {total + code_style_points} / 90')
+        print(f'\nTotal: {total} / 90')
