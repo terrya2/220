@@ -13,6 +13,7 @@ code_style_points = 20
 
 class TestClass:
 
+    # linting tests
     def test_linting(self):
         global code_style_points
         global total

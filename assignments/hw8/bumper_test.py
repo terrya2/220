@@ -18,6 +18,7 @@ win = GraphWin("test", 600, 400)
 
 class TestClass:
 
+    # static tests
     def test_output(self):
         test_cases = TestCase()
         test_cases.did_collide_tests = [
@@ -49,6 +50,7 @@ class TestClass:
         ]
         self.run_test(test_cases, 'static tests')
 
+    # dynamic tests
     def test_api(self):
         response = api_service.test('hw7', 'GET',
                                     params={'number': 13, 'width': win.getWidth(), 'height': win.getHeight()})
@@ -60,6 +62,15 @@ class TestClass:
         test_cases.did_collide_tests = api_tests['didCollideTests']
 
         self.run_test(test_cases, 'api tests')
+
+    # linting tests
+    def test_linting(self):
+        global code_style_points
+        global total
+        points = code_style.code_style('bumper.py', code_style_points, rcfile='../../.pylintrc')
+        total += points
+        if not points == code_style_points:
+            pytest.xfail(reason="Failed Code Style")
 
     @staticmethod
     def run_test(test_cases, test_type):
@@ -194,14 +205,6 @@ class TestClass:
         total += horizontal_results.get_total_points()
 
         print(f'\n============================== {test_type} end ===============================\n')
-
-    def test_linting(self):
-        global code_style_points
-        global total
-        points = code_style.code_style('bumper.py', code_style_points, rcfile='../../.pylintrc')
-        total += points
-        if not points == code_style_points:
-            pytest.xfail(reason="Failed Code Style")
 
     @pytest.fixture(scope='session', autouse=True)
     def summary(self):

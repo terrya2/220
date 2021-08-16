@@ -13,6 +13,7 @@ code_style_points = 10
 
 class TestClass:
 
+    # static tests
     def test_output(self):
         inputs = [
             (('this program will be great', 'python'), 'IFBZDEDEKHAJXJEISTGCTA'),
@@ -21,12 +22,22 @@ class TestClass:
         ]
         self.run_test(inputs, 'static tests')
 
+    # dynamic tests
     def test_api(self):
         response = api_service.test('hw5', 'GET', params={'number': 13})
         answers = json.loads(response.text)
         a = 1
         test_data = self.convert_test_data(answers)
         self.run_test(test_data, 'api tests')
+
+    # linting tests
+    def test_linting(self):
+        global code_style_points
+        global total
+        points = code_style.code_style('mean.py', code_style_points, rcfile='../../tests/hw5/.pylintrc')
+        total += points
+        if not points == code_style_points:
+            pytest.xfail(reason="Failed Code Style")
 
     @staticmethod
     def run_test(data, test_type):
@@ -59,14 +70,6 @@ class TestClass:
         for test in data:
             inputs.append(((test['message'], test['key']), test['cipherText']))
         return inputs
-
-    def test_linting(self):
-        global code_style_points
-        global total
-        points = code_style.code_style('mean.py', code_style_points, rcfile='../../tests/hw5/.pylintrc')
-        total += points
-        if not points == code_style_points:
-            pytest.xfail(reason="Failed Code Style")
 
     @pytest.fixture(scope='session', autouse=True)
     def summary(self):

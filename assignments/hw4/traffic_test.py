@@ -23,6 +23,7 @@ def input_map(sentence):
 
 class TestClass:
 
+    # static tests
     def test_output(self, monkeypatch, capfd):
         road11 = Road(1, [20, 30, 15, 45])
         road12 = Road(2, [40, 30, 50])
@@ -34,9 +35,19 @@ class TestClass:
         inputs = [test1, test2]
         self.run_test(inputs, 'static tests', monkeypatch, capfd)
 
+    # dynamic tests
     def test_random(self, monkeypatch, capfd):
         data = self.make_test_data(14)
         self.run_test(data, 'random tests', monkeypatch, capfd)
+
+    # linting tests
+    def test_linting(self):
+        global code_style_points
+        global total
+        points = code_style('traffic.py', code_style_points)
+        total += points
+        if not points == code_style_points:
+            pytest.xfail(reason="Failed Code Style")
 
     @staticmethod
     def run_test(test_cases, test_type, monkeypatch, capfd):
@@ -109,14 +120,6 @@ class TestClass:
             data.append(TestCase(roads))
 
         return data
-
-    def test_linting(self):
-        global code_style_points
-        global total
-        points = code_style('traffic.py', code_style_points)
-        total += points
-        if not points == code_style_points:
-            pytest.xfail(reason="Failed Code Style")
 
     @pytest.fixture(scope='session', autouse=True)
     def summary(self):

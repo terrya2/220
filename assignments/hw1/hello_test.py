@@ -10,6 +10,7 @@ code_style_points = 10
 
 class TestClass:
 
+    # static tests
     def test_input(self, capfd):
         test_type = 'static tests'
         global total
@@ -31,6 +32,7 @@ class TestClass:
             total = total + global_points
         print(f'\n\n============================== {test_type} end ===============================\n')
 
+    # linting tests
     def test_linting(self):
         global code_style_points
         global total

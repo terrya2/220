@@ -12,7 +12,7 @@ code_style_points = 20
 
 
 class TestClass:
-
+    # static tests
     def test_input(self, monkeypatch, capfd):
         inputs = [
             (['15.84', '31', '850', '400', '20'], '9.35'),
@@ -22,6 +22,7 @@ class TestClass:
         ]
         self.run_test(inputs, 'static tests', monkeypatch, capfd)
 
+    # dynamic tests
     def test_api(self, monkeypatch, capfd):
         response = api_service.test('hw1', 'GET', params={'number': 10})
         data = json.loads(response.text)
@@ -29,6 +30,15 @@ class TestClass:
         answers = data['answers']
         test_data = self.convert_test_data(input, answers)
         self.run_test(test_data, 'api tests', monkeypatch, capfd)
+
+    # linting tests
+    def test_linting(self):
+        global code_style_points
+        global total
+        points = code_style.code_style('interest.py', code_style_points)
+        total += points
+        if not points == code_style_points:
+            pytest.xfail(reason="Failed Code Style")
 
     @staticmethod
     def run_test(data, test_type, monkeypatch, capfd):
@@ -84,14 +94,6 @@ class TestClass:
         interest.main()
         captured = capfd.readouterr()
         return float(captured.out.strip())
-
-    def test_linting(self):
-        global code_style_points
-        global total
-        points = code_style.code_style('interest.py', code_style_points)
-        total += points
-        if not points == code_style_points:
-            pytest.xfail(reason="Failed Code Style")
 
     @pytest.fixture(scope='session', autouse=True)
     def summary(self):
