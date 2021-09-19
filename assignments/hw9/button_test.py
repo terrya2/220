@@ -94,4 +94,13 @@ class TestClass:
             tester.run_test(my_button.text.getText(), label, 'set label')
         tester.section_end()
         tester.area_end("button tests")
+
+    def test_linter(self):
+        global tester
+        tester.area_start("code style")
+        tester.lint('button.py', 14)
+        tester.area_end("code style")
+
+
+    def test_finalize(self):
         tester.end_test()
