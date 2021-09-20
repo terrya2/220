@@ -1,39 +1,15 @@
 import random
 import sys
 
+import pytest
 from graphics import GraphWin, Point, Rectangle, Text
 
 from hw9.button import Button
 from tests.test_framework import Test_Framework as Tester
 
-tester = Tester()
+tester = Tester(sub_points=1)
 
 win = GraphWin("Three Door Game", 600, 600)
-
-
-def build_is_clicked_tests(pointA: Point, pointB: Point):
-    ax = pointA.getX()
-    ay = pointA.getY()
-    bx = pointB.getX()
-    by = pointB.getY()
-    results = []
-    for i in range(5):
-        randX = random.randint(ax, bx)
-        randY = random.randint(ay, by)
-        results.append((Point(randX, randY), True))
-    for i in range(5):
-        randX = random.randint(0, ax - 1)
-        randY = random.randint(0, ay - 1)
-        results.append((Point(randX, randY), False))
-    for i in range(5):
-        randX = random.randint(bx + 1, bx + 50)
-        randY = random.randint(by + 1, by + 50)
-        results.append((Point(randX, randY), False))
-    return results
-
-
-def get_colors():
-    return ["green", "red", "purple", "violet", "orange", "yellow", "thetimehascome", "blue"]
 
 
 class TestClass:
@@ -83,7 +59,7 @@ class TestClass:
         for test in is_clicked_values:
             is_clicked = my_button.is_clicked(test[0])
             tester.run_test(is_clicked, test[1], "click test", {'click point': test[0], 'button dimensions': (
-            my_button.shape.getP1(), my_button.shape.getP2())})
+                my_button.shape.getP1(), my_button.shape.getP2())})
         # color_button
         for color in get_colors():
             my_button.color_button(color)
@@ -95,12 +71,44 @@ class TestClass:
         tester.section_end()
         tester.area_end("button tests")
 
-    def test_linter(self):
+    def test_linter_button(self):
         global tester
-        tester.area_start("code style")
-        tester.lint('button.py', 14)
-        tester.area_end("code style")
+        tester.area_start("code style | button")
+        tester.lint('button.py', 12)
+        tester.area_end("code style | button")
+
+    def test_linter_game(self):
+        global tester
+        tester.area_start("code style | game")
+        tester.lint('three_door_game.py', 10)
+        tester.area_end("code style | game")
+
+    @pytest.fixture(scope='session', autouse=True)
+    def summary(self):
+        yield
+        tester.end_test(60)
 
 
-    def test_finalize(self):
-        tester.end_test()
+def build_is_clicked_tests(pointA: Point, pointB: Point):
+    ax = pointA.getX()
+    ay = pointA.getY()
+    bx = pointB.getX()
+    by = pointB.getY()
+    results = []
+    for i in range(5):
+        randX = random.randint(ax, bx)
+        randY = random.randint(ay, by)
+        results.append((Point(randX, randY), True))
+    for i in range(5):
+        randX = random.randint(0, ax - 1)
+        randY = random.randint(0, ay - 1)
+        results.append((Point(randX, randY), False))
+    for i in range(5):
+        randX = random.randint(bx + 1, bx + 50)
+        randY = random.randint(by + 1, by + 50)
+        results.append((Point(randX, randY), False))
+    return results
+
+
+def get_colors():
+    return ["green", "red", "purple", "violet", "orange", "yellow", "thetimehascome", "blue"]

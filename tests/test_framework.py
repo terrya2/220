@@ -66,8 +66,9 @@ class Test_Framework:
         self.area_questions_total += self.section_questions_total
         print(f'\t{self.section_questions_correct}/{self.section_questions_total} +{self.section_score}')
 
-    def end_test(self):
-        print(f'\nDONE: {self.test_total_score}/{self.test_total_possible_score}')
+    def end_test(self, total_possible):
+        total = self.test_total_possible_score if total_possible is None else total_possible
+        print(f'\nDONE: {self.test_total_score}/{total}')
 
     def lint(self, filename, points, rcfile='../../.pylintrc'):
         self.area_questions_total = points
