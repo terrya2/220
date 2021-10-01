@@ -18,7 +18,13 @@ code_style_points = 10
 
 
 def input_map(sentence):
-    return float(sentence.split(':')[1].strip())
+    try:
+        return float(sentence.split(':')[1].strip())
+    except:
+        print('\n********************************************************')
+        print('could not finish running test. make sure your output has a colon ":" before the value')
+        print('********************************************************')
+        exit(1)
 
 
 class TestClass:
