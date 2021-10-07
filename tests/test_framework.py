@@ -29,7 +29,8 @@ class Test_Framework:
     def FAILED(self, actual, expected, test_name, data):
         print(f'\tFAILED -{self.sub_points}: {test_name}')
         print(f'\t\tactual: {actual} | expected: {expected}')
-        print(f'\t\tdata: {data}')
+        if data:
+            print(f'\t\tdata: {data}')
 
 
     def run_test(self, actual, expected, test_name="", data=""):
