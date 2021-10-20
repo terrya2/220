@@ -19,12 +19,13 @@ class TestItem:
 
 
 class Test(TestItem):
-    def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False):
+    def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False, show_actual_expected=True):
         super().__init__(name, points)
         self.actual = actual
         self.expected = expected
         self.data = data
         self.fail_fast = fail_fast
+        self.show_actual_expected = show_actual_expected
 
     def PASSED(self):
         self.earned_points += self.default_points
@@ -36,7 +37,7 @@ class Test(TestItem):
         self.total_points += self.default_points
         tabs = '\t' * self.level
         print(f'{tabs}FAILED -{self.default_points}: {self.name}')
-        if not self.actual is None:
+        if self.show_actual_expected:
             print(f'{tabs}\tactual: {self.actual} | expected: {self.expected}')
         if self.data:
             print(f'{tabs}\tdata: {self.data}')
