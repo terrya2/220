@@ -58,7 +58,7 @@ class Test(TestItem):
 
 
 class Section(TestItem):
-    def __init__(self, name, points=None, custom_total_points=None):
+    def __init__(self, name, points=None, custom_total_points=None, group_data=None):
         super().__init__(name, points)
         self.outline: list[TestItem] = []
         self.custom_total_points = custom_total_points
@@ -66,6 +66,8 @@ class Section(TestItem):
         if not custom_total_points is None:
             self.total_points = custom_total_points
             self.earned_points = custom_total_points
+        # used to indicate if one set of test data should be used for all the tests
+        self.group_data = group_data
 
     def add_items(self, *items: TestItem):
         for item in items:
@@ -86,6 +88,8 @@ class Section(TestItem):
             # case where points are assigned up front and subtracted for wrong answers
             else:
                 self.earned_points -= item.total_points
+        if self.group_data and self.earned_points < self.total_points:
+            print(f'{tabs}\tdata: {self.group_data}')
         end_label = f' {self.name} end {self.earned_points}/{self.total_points} '
         print('{0}{1:-^70}'.format(tabs, end_label))
 
