@@ -5,7 +5,7 @@ from tests.test_framework import *
 class TestClass:
 
     def test_input(self, capfd):
-        builder = TestBuilder("Hello World!", 70)
+        builder = TestBuilder("Hello World!", 'hello.py', linter_points=20, default_test_points=70)
 
         hello.main()
         captured = capfd.readouterr()
@@ -13,7 +13,6 @@ class TestClass:
         expected = "hello, world!"
 
         test = Test('print hello, world!', actual, expected)
-        linting = create_lint_test('hello.py', 20)
+        builder.add_items(test)
 
-        builder.add_items(test, linting)
         builder.run()

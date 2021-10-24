@@ -19,7 +19,8 @@ class TestItem:
 
 
 class Test(TestItem):
-    def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False, show_actual_expected=True):
+    def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False,
+                 show_actual_expected=True):
         super().__init__(name, points)
         self.actual = actual
         self.expected = expected
@@ -37,12 +38,12 @@ class Test(TestItem):
         self.total_points += self.default_points
         tabs = '\t' * self.level
         print(f'{tabs}FAILED -{self.default_points}: {self.name}')
+        if self.fail_fast:
+            sys.exit()
         if self.show_actual_expected:
             print(f'{tabs}\tactual: {self.actual} | expected: {self.expected}')
         if self.data:
             print(f'{tabs}\tdata: {self.data}')
-        if self.fail_fast:
-            sys.exit()
 
     def run(self, level=1):
         self.level = level
@@ -50,6 +51,10 @@ class Test(TestItem):
             self.PASSED()
         else:
             self.FAILED()
+
+    def fail_fast(self):
+        self.fail_fast = True
+        return self
 
 
 class Section(TestItem):
@@ -86,12 +91,26 @@ class Section(TestItem):
 
 
 class TestBuilder:
-    def __init__(self, name, default_test_points=1):
+    def __init__(self, name, file_name, linter_points, default_test_points=1):
         self.outline: list[TestItem] = []
         self.total_points = 0
         self.earned_points = 0
         self.default_test_points = default_test_points
         self.name = name
+        self.blacklist = {
+            'importos': 'no need for the os module. please remove it to continue.',
+            'fromos': 'no need for the os module. please remove it to continue.',
+            'importpathlib': 'no need for the pathlib module. please remove it to continue.',
+            'frompathlib': 'no need for the pathlib module. please remove it to continue.',
+        }
+        self.file_name = file_name
+        self.rc_file = '../../.pylintrc'
+        self.linter_points = linter_points
+        self.blacklist_func = create_blacklist_test()
+        self.lint_func = create_lint_test()
+
+    def create_blacklist_tests(self):
+        pass
 
     def add_items(self, *items: TestItem):
         for item in items:
@@ -101,6 +120,17 @@ class TestBuilder:
     def run(self):
         print()
         print()
+
+        ### BLACKLIST TESTS ###
+        self.blacklist_func((self.blacklist, self.file_name))
+        #######
+
+        ### LINTING TESTS ###
+        lint_test = self.lint_func((self.file_name, self.linter_points, self.rc_file))
+        if lint_test:
+            self.outline.append(lint_test)
+        #######
+
         test_intro = f' Starting test {self.name} '
         print('{0:=^80}'.format(test_intro))
         print()
@@ -115,20 +145,49 @@ class TestBuilder:
         print('{0:=^80}'.format(test_outro))
 
 
-def create_lint_test(test_file, points, rc_file='../../.pylintrc') -> Section:
-    linting = Section('Linting', custom_total_points=points)
-    (pylint_stdout, pylint_stderr) = lint.py_run(f'{test_file} --rcfile {rc_file}', return_std=True)
-    output = pylint_stdout.getvalue()
-    error_list = output.split("\n")[1:-1]
-    # case when the errors exceeds the possible points
-    error_range = range(len(error_list))
-    if points < len(error_list):
-        error_range = range(points)
-    for i in error_range:
-        linting.add_items(Test(error_list[i], None, 1, points=1))
-    if points < len(error_list):
-        linting.add_items(Test(f'...and {len(error_list) - points} more errors', None, 1, points=0))
-    return linting
+def create_lint_test():
+    def create_lint_section(x) -> Section:
+        test_file, points, rc_file = x
+        linting = Section('Linting', custom_total_points=points)
+        (pylint_stdout, pylint_stderr) = lint.py_run(f'{test_file} --rcfile {rc_file}', return_std=True)
+        output = pylint_stdout.getvalue()
+        error_list = output.split("\n")[1:-1]
+        # case when the errors exceeds the possible points
+        error_range = range(len(error_list))
+        if points < len(error_list):
+            error_range = range(points)
+        for i in error_range:
+            linting.add_items(Test(error_list[i], None, 1, points=1))
+        if points < len(error_list):
+            linting.add_items(Test(f'...and {len(error_list) - points} more errors', None, 1, points=0))
+        return linting
+
+    return create_lint_section
+
+
+def create_blacklist_test():
+    def create_blacklist_code_analyzer(x) -> list[Test]:
+        blacklist, test_file = x
+        tests = []
+        with open(test_file, 'r') as file:
+            for index, line in enumerate(file):
+                found_items = list(filter(lambda x: x.replace(' ', '').lower() in line, blacklist.keys()))
+                for item in found_items:
+                    tests.append(
+                        Test(f'Line {index + 1} - {blacklist[item]}', 0, 1, show_actual_expected=False, points=100))
+            try:
+                tests[-1].fail_fast = True
+            except IndexError:
+                pass
+        for item in tests:
+            item.run()
+
+    return create_blacklist_code_analyzer
+
+
+"""
+DEPRECATED
+"""
 
 
 class Test_Framework:
