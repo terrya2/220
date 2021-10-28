@@ -21,6 +21,17 @@ class TestItem:
 class Test(TestItem):
     def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False,
                  show_actual_expected=True):
+        """
+        A Test in a Test Suite.
+
+        :param name: the name of the test
+        :param actual: the value being checked
+        :param expected: the correct value
+        :param data: the data used to generate the test
+        :param points: the amount of points the test is worth
+        :param fail_fast: exit the test suit if the test fails
+        :param show_actual_expected: show the actual and expected values if a test fails
+        """
         super().__init__(name, points)
         self.actual = actual
         self.expected = expected
@@ -28,13 +39,13 @@ class Test(TestItem):
         self.fail_fast = fail_fast
         self.show_actual_expected = show_actual_expected
 
-    def PASSED(self):
+    def passed(self):
         self.earned_points += self.default_points
         self.total_points += self.default_points
         tabs = '\t' * self.level
         print(f"{tabs}PASSED: +{self.total_points} - {self.name}")
 
-    def FAILED(self):
+    def failed(self):
         self.total_points += self.default_points
         tabs = '\t' * self.level
         print(f'{tabs}FAILED -{self.default_points}: {self.name}')
@@ -48,9 +59,9 @@ class Test(TestItem):
     def run(self, level=1):
         self.level = level
         if self.actual == self.expected:
-            self.PASSED()
+            self.passed()
         else:
-            self.FAILED()
+            self.failed()
 
     def fail_fast(self):
         self.fail_fast = True
@@ -59,6 +70,14 @@ class Test(TestItem):
 
 class Section(TestItem):
     def __init__(self, name, points=None, custom_total_points=None, group_data=None):
+        """
+        A section of a Test Suite. Can be made up of other sections and/or individual :class:`Test <tests.test_framework.TestItem>`
+
+        :param name: the name of the section
+        :param points: the default number of points to be awarded for each item in the section
+        :param custom_total_points: if set, these points are awarded up front and points are subtracted for wrong answers
+        :param group_data: if set, data will be displayed for the entire section if a test fails rather than individual tests
+        """
         super().__init__(name, points)
         self.outline: list[TestItem] = []
         self.custom_total_points = custom_total_points
@@ -95,7 +114,28 @@ class Section(TestItem):
 
 
 class TestBuilder:
+    """
+    A TestBuilder
+
+    Attributes
+         blacklist:    dict of code that should not be used and the message to display if found
+         rc_file:   the file to use for linting tests
+         blacklist_func: the function that runs for blacklist tests. takes a tuple parameter with the blacklist and the file_name
+                         this can be overridden so no blacklist tests run by setting this to lambda x : None
+        lint_func:  the function that runs for linting tests. takes a tuple parameter with the file_name, linter_points, and rc_file
+                    this can be overridden so no linting tests run by setting this to lambda x : None
+
+
+    """
     def __init__(self, name, file_name, linter_points, default_test_points=1):
+        """
+        The builder of a test suite. Can be made up of sections and/or individual tests`
+
+        :param name: the name of the test
+        :param file_name: the name of the file being tested
+        :param linter_points: the number of points assigned to linting tests
+        :param default_test_points: the default number of points to be awarded for each TestItem in the test suite
+        """
         self.outline: list[TestItem] = []
         self.total_points = 0
         self.earned_points = 0
