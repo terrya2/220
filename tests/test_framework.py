@@ -127,6 +127,7 @@ class TestBuilder:
 
 
     """
+
     def __init__(self, name, file_name, linter_points, default_test_points=1):
         """
         The builder of a test suite. Can be made up of sections and/or individual tests`
@@ -215,7 +216,8 @@ def create_blacklist_test():
         tests = []
         with open(test_file, 'r') as file:
             for index, line in enumerate(file):
-                found_items = list(filter(lambda x: x.replace(' ', '').lower() in line, blacklist.keys()))
+                found_items = list(
+                    filter(lambda blacklist_key: blacklist_key in line.replace(' ', '').lower(), blacklist.keys()))
                 for item in found_items:
                     tests.append(
                         Test(f'Line {index + 1} - {blacklist[item]}', 0, 1, show_actual_expected=False, points=100))
