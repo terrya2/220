@@ -202,9 +202,10 @@ def create_lint_test():
         if points < len(error_list):
             error_range = range(points)
         for i in error_range:
-            linting.add_items(Test(error_list[i], None, 1, points=1))
+            linting.add_items(Test(error_list[i], None, 1, points=1, show_actual_expected=False))
         if points < len(error_list):
-            linting.add_items(Test(f'...and {len(error_list) - points} more errors', None, 1, points=0))
+            linting.add_items(
+                Test(f'...and {len(error_list) - points} more errors', None, 1, points=0, show_actual_expected=False))
         return linting
 
     return create_lint_section
