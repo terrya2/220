@@ -9,11 +9,10 @@ from tests import api_service
 class TestClass:
 
     def test_stuff(self, monkeypatch, capfd):
-        builder = TestBuilder('Interest', 5)
-        static_section = TestClass.static_tests('Static Tests', monkeypatch, capfd)
-        api_section = TestClass.api_tests('Remote Tests', monkeypatch, capfd)
-        lint_section = create_lint_test('interest.py', 20)
-        builder.add_items(static_section, api_section, lint_section)
+        builder = TestBuilder('Interest', 'interest.py', 20, 5)
+        static_section = TestClass.static_tests('Static', monkeypatch, capfd)
+        api_section = TestClass.api_tests('Dynamic', monkeypatch, capfd)
+        builder.add_items(static_section, api_section)
         builder.run()
 
     @staticmethod
@@ -49,12 +48,12 @@ class TestClass:
 
         for index, actual in enumerate(outputs):
             expected = data[index][1]
-            used_data = {'rate': float(data[index][0][0]),
-                         'days': float(data[index][0][1]),
-                         'previous_balance': float(data[index][0][2]),
-                         'payment': float(data[index][0][3]),
-                         'payment_day': float(data[index][0][4])
-                         }
+            used_data = [f'rate: {float(data[index][0][0])}',
+                         f'days: {float(data[index][0][1])}',
+                         f'previous_balance: {float(data[index][0][2])}',
+                         f'payment: {float(data[index][0][3])}',
+                         f'payment_day: {float(data[index][0][4])}'
+                         ]
             section.add_items(Test(f'test {index}', actual, expected, used_data))
 
         return section

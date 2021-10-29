@@ -39,7 +39,7 @@ def run_test(data, test_type):
         key = inp[0][1]
         expected = inp[1]
         actual = vigenere.code(message, key)
-        section.add_items(Test(message, actual, expected, {'message': message, 'key': key}))
+        section.add_items(Test(message, actual, expected, [f'message: {message}', f'key: {key}']))
     return section
 
 

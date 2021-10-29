@@ -58,9 +58,9 @@ class TestClass:
                 {'name': 'geometric_mean', 'actual': actual['geometric_mean'],
                  'expected': expected['geometric_mean']},
             ]
-            sub_section = Section(f'test {index + 1}')
+            sub_section = Section(f'test {index + 1}', group_data=[" ".join(map(str, actual['data']))])
             for i in test_results:
-                sub_section.add_items(Test(i['name'], i['actual'], i['expected'], actual['data']))
+                sub_section.add_items(Test(i['name'], i['actual'], i['expected']))
             section.add_items(sub_section)
         return section
 

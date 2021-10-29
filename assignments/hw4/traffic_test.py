@@ -53,7 +53,7 @@ class TestClass:
 
         section = Section(test_type)
         for index, test_case in enumerate(test_cases):
-            sub_section = Section(f'test {index + 1}', group_data={'user inputs': test_case.get_user_input()})
+            sub_section = Section(f'test {index + 1}', group_data=[f'user inputs: {test_case.get_user_input()}'])
 
             sub_section.add_items(
                 Test('Total Cars', test_case.actual_total_cars, test_case.expected_total_cars),
