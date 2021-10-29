@@ -48,7 +48,7 @@ class Test(TestItem):
     def failed(self):
         self.total_points += self.default_points
         tabs = '\t' * self.level
-        print(f'{tabs}FAILED -{self.default_points}: {self.name}')
+        print(f'{tabs}FAILED: -{self.default_points}: {self.name}')
         if self.fail_fast:
             sys.exit()
         if self.show_actual_expected:
