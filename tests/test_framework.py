@@ -54,7 +54,9 @@ class Test(TestItem):
         if self.show_actual_expected:
             print(f'{tabs}\tactual: {self.actual} | expected: {self.expected}')
         if self.data:
-            print(f'{tabs}\tdata: {self.data}')
+            print(f'{tabs}\tdata:')
+            for line in self.data:
+                print(f'{tabs}\t\t{line}')
 
     def run(self, level=1):
         self.level = level
@@ -108,7 +110,9 @@ class Section(TestItem):
             else:
                 self.earned_points -= item.total_points
         if self.group_data and self.earned_points < self.total_points:
-            print(f'{tabs}\tdata: {self.group_data}')
+            print(f'{tabs}\tdata:')
+            for line in self.group_data:
+                print(f'{tabs}\t\t{line}')
         end_label = f' {self.name} end {self.earned_points}/{self.total_points} '
         print('{0}{1:-^70}'.format(tabs, end_label))
 
