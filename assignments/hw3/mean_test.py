@@ -10,6 +10,10 @@ class TestClass:
     def test_hw(self, monkeypatch, capfd):
         outline = TestBuilder('mean', 'mean.py', 12, 2)
         outline.rc_file = '../../tests/hw3/.pylintrc'
+        outline.add_to_blacklist({
+            'importstatistics': 'statistics library not allowed - please write your program to calculate the averages and do not rely on outside libraries to do so for you.',
+            'fromstatistics': 'statistics library not allowed - please write your program to calculate the averages and do not rely on outside libraries to do so for you.'
+        })
         static_tests = self.static_test_builder(monkeypatch, capfd)
         api_tests = self.api_test_builder(monkeypatch, capfd)
         outline.add_items(static_tests, api_tests)

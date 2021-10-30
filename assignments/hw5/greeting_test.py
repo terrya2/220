@@ -9,7 +9,7 @@ class TestClass:
 
     def test_hw(self):
         builder = TestBuilder('greeting', 'greeting.py', 20, 1)
-        builder.blacklist.update({
+        builder.add_to_blacklist({
             'importturtle': "turtle graphics is not allowed for this assignment. please use the author's graphics package.",
             'fromturtle': "turtle graphics is not allowed for this assignment. please use the author's graphics package."
         })
