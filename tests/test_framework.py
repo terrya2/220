@@ -157,14 +157,23 @@ class TestBuilder:
         self.linter_points = linter_points
         self.blacklist_func = create_blacklist_test()
         self.lint_func = create_lint_test()
+        self.lint_tests = []
 
     def create_blacklist_tests(self):
         pass
+
+    def add_to_blacklist(self, items: dict):
+        self.blacklist.update(items)
 
     def add_items(self, *items: TestItem):
         for item in items:
             self.outline.append(item)
         return self
+
+    def add_lint_test(self, file_name, points=None, rc_file=None):
+        if points is None: points = self.linter_points
+        if rc_file is None: rc_file = self.rc_file
+        self.lint_tests.append(self.lint_func((file_name, points, rc_file)))
 
     def run(self):
         print()
@@ -178,6 +187,8 @@ class TestBuilder:
         lint_test = self.lint_func((self.file_name, self.linter_points, self.rc_file))
         if lint_test:
             self.outline.append(lint_test)
+        for test in self.lint_tests:
+            self.outline.append(test)
         #######
 
         test_intro = f' Starting test {self.name} '
@@ -197,7 +208,7 @@ class TestBuilder:
 def create_lint_test():
     def create_lint_section(x) -> Section:
         test_file, points, rc_file = x
-        linting = Section('Linting', custom_total_points=points)
+        linting = Section(f'Linting {test_file}', custom_total_points=points)
         (pylint_stdout, pylint_stderr) = lint.py_run(f'{test_file} --rcfile {rc_file}', return_std=True)
         output = pylint_stdout.getvalue()
         error_list = output.split("\n")[1:-1]
