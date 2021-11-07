@@ -6,91 +6,168 @@ import pytest
 
 from hw10.sales_person import SalesPerson
 from hw10.sales_force import SalesForce
-from tests.test_framework import Test_Framework as Tester
-
-tester = Tester(sub_points=1)
+from tests.test_framework import *
 
 
 class TestClass:
 
-    def test_sales_person(self):
-        global tester
-        tester.area_start("Sales Person Tests")
-        SALES_PERSON_ID = random.randint(0, 1000)
-        SALES_PERSON_NAME = get_random_full_name()
+    def test_stuff(self):
+        test_suit = TestSuit('HW 10')
+        sales_person_builder = TestBuilder('Sales Person', 'sales_person.py', 10)
+        sales_force_builder = TestBuilder('Sales Force', 'sales_force.py', 10)
+        constructor_section, instance_vars_section, methods_section = sales_person_test()
 
-        # Test Constructor
-        tester.section("constructor")
-        sales_person = None
-        try:
-            sales_person = SalesPerson(SALES_PERSON_ID, SALES_PERSON_NAME)
-            tester.run_test(True, True, "initialize constructor")
-        except Exception as e:
-            print('\nFAILED: Could not initialize SalesPerson, no more test will run.')
-            tester.section_end()
-            tester.area_end("Sales Person Tests")
-            sys.exit(1)
-        tester.section_end()
+        sales_person_builder.add_items(constructor_section, instance_vars_section, methods_section)
+        sales_person_builder.run()
+        # test_suit.add_test_builders(sales_person_builder, sales_force_builder)
+        # test_suit.run()
 
-        # test instance variables
-        tester.section("instance variables")
-        # employee_id
-        tester.run_test(type(sales_person.employee_id), int, "instance variable employee_id")
-        # name
-        tester.run_test(type(sales_person.name), str, "instance variable name")
-        # sales
-        tester.run_test(type(sales_person.sales), list, "instance variable sales")
-        tester.section_end()
 
-        # test methods
-        tester.section("methods")
-        # get_id
-        tester.run_test(sales_person.get_id(), SALES_PERSON_ID, "get_id")
-        # get_name
-        tester.run_test(sales_person.get_name(), SALES_PERSON_NAME, "get_name")
-        # set_name
-        new_name = 'New Name'
-        sales_person.set_name(new_name)
-        tester.run_test(sales_person.name, new_name, "set_name")
-        # enter_sale
-        sale_amount = random.uniform(0, 100.00)
-        sales_person.enter_sale(sale_amount)
-        tester.run_test(sales_person.sales[0], sale_amount, "enter_sale")
-        # total_sales
-        tester.run_test(sales_person.total_sales(), sale_amount, 'total_sales')
-        # get_sales
-        sales = sales_person.get_sales()
-        tester.run_test(sales, [sale_amount], 'get_sales')
-        # met_quota
-        quota = random.uniform(0, sale_amount)
-        tester.run_test(sales_person.met_quota(quota), True, 'met_quota',
-                        data={'quota': quota, 'sales amount': sale_amount})
-        quota = random.uniform(sale_amount + 1, sale_amount + 1000)
-        tester.run_test(sales_person.met_quota(quota), False, 'met_quota',
-                        data={'quota': quota, 'sales amount': sale_amount})
-        tester.run_test(sales_person.met_quota(sale_amount), True, 'met_quota',
-                        data={'quota': quota, 'sales amount': sale_amount})
-        # compare_to
-        other_person = SalesPerson(sales_person.employee_id, sales_person.name)
-        other_person.sales = sales_person.sales
-        tester.run_test(sales_person.compare_to(other_person), 0, "compare_to",
-                        data={'this_sales': sales_person.sales, 'other_sales': other_person.sales})
-        other_person.sales = [sum(sales_person.get_sales()) - 1]
-        tester.run_test(sales_person.compare_to(other_person), 1, "compare_to",
-                        data={'this_sales': sales_person.sales, 'other_sales': other_person.sales})
-        other_person.sales = [sum(sales_person.get_sales()) + 1]
-        tester.run_test(sales_person.compare_to(other_person), -1, "compare_to",
-                        data={'this_sales': sales_person.sales, 'other_sales': other_person.sales})
-        # __str__
-        to_string = sales_person.__str__()
-        id, rest = to_string.split('-')
+def make_sales_person_with_sales(sp_id, sp_name, sale_1, sale_2):
+    sales_person = SalesPerson(sp_id, sp_name)
+    sales_person.enter_sale(sale_1)
+    sales_person.enter_sale(sale_2)
+    return sales_person
+
+
+def sales_person_test():
+    SALES_PERSON_ID = random.randint(0, 1000)
+    SALES_PERSON_NAME = get_random_full_name()
+
+    # Test Constructor
+    constructor_section = Section('Constructor')
+    outcome, sales_person = run_safe(lambda: SalesPerson(SALES_PERSON_ID, SALES_PERSON_NAME))
+    if not outcome:
+        print('\nFAILED: Could not construct SalesPerson, no more test will run.')
+        sys.exit(1)
+    constructor_section.add_items(Test('initialize constructor', True, True, show_actual_expected=False))
+
+    # test instance variables
+    iv_person = SalesPerson(SALES_PERSON_ID, SALES_PERSON_NAME)
+    instance_variables_section = Section('Instance Variables')
+    employee_id_test = Test('instance variable employee_id', type(iv_person.employee_id), int)
+    name_test = Test('instance variable name', type(iv_person.name), str)
+    sales_test = Test('instance variable sales', type(iv_person.sales), list)
+    instance_variables_section.add_items(employee_id_test, name_test, sales_test)
+
+    # test methods
+    methods_section = Section('Methods')
+    # get_id
+    methods_person = SalesPerson(SALES_PERSON_ID, SALES_PERSON_NAME)
+    methods_section.add_items(Test('get_id', lambda: methods_person.get_id(), SALES_PERSON_ID))
+    # get_name
+    methods_section.add_items(Test('get_name', lambda: methods_person.get_name(), SALES_PERSON_NAME))
+    # set_name
+    new_name = 'New Name'
+
+    set_name_person = SalesPerson(SALES_PERSON_ID, SALES_PERSON_NAME)
+
+    def set_name_test():
+        set_name_person.set_name(new_name)
+        return set_name_person.name
+
+    methods_section.add_items(Test('set_name', set_name_test, new_name))
+    # enter_sale
+    enter_sale_person = SalesPerson(SALES_PERSON_ID, SALES_PERSON_NAME)
+    sale_amount_1 = random.uniform(0, 100.00)
+    sale_amount_2 = random.uniform(0, 100.00)
+    total_sales = sale_amount_1 + sale_amount_2
+
+    def sale_test():
+        enter_sale_person.enter_sale(sale_amount_1)
+        enter_sale_person.enter_sale(sale_amount_2)
+        return enter_sale_person.sales[0], enter_sale_person.sales[1]
+
+    methods_section.add_items(Test('enter_sale', sale_test, (sale_amount_1, sale_amount_2)))
+
+    # total_sales
+    methods_section.add_items(Test('total_sales', lambda: enter_sale_person.total_sales(), total_sales))
+
+    # get_sales
+    methods_section.add_items(Test('get_sales', lambda: enter_sale_person.get_sales(), [sale_amount_1, sale_amount_2]))
+
+    # met_quota
+    try:
+        quota_sales_person = make_sales_person_with_sales(SALES_PERSON_ID, SALES_PERSON_NAME, sale_amount_1,
+                                                          sale_amount_2)
+        quota_hit = random.uniform(0, total_sales)
+        quota_miss = random.uniform(total_sales + 1, total_sales + 1000)
+        a = lambda: quota_sales_person.met_quota(quota_hit)
+        b = lambda: quota_sales_person.met_quota(quota_miss)
+
+        quota_tests = [(a, True, quota_hit), (b, False, quota_miss)]
+        for lambda_func, expected, quota in quota_tests:
+            methods_section.add_items(
+                Test('met_quota', lambda_func, expected,
+                     data=[f'quota: {quota}', f'sales amount: {total_sales}']))
+        # methods_section.add_items(
+        #     Test('met_quota - miss', lambda: sales_person.met_quota(quota_tests[1][0]), quota_tests[1][1],
+        #          data=[f'quota: {quota_tests[1][0]}', f'sales amount: {total_sales}']))
+    except Exception as e:
+        methods_section.add_items(
+            Test('met_quota - hit', True, False, show_actual_expected=False,
+                 data=['Test could not run due to an exception', e]))
+        methods_section.add_items(
+            Test('met_quota - miss', True, False, show_actual_expected=False,
+                 data=['Test could not run due to an exception', e]))
+
+    # compare_to
+    try:
+        compare_to_person = make_sales_person_with_sales(SALES_PERSON_ID, SALES_PERSON_NAME, sale_amount_1,
+                                                         sale_amount_2)
+        other_person_equal = SalesPerson(compare_to_person.employee_id, compare_to_person.name)
+        other_person_equal.sales = compare_to_person.sales
+        lambda_equal = compare_to_person.compare_to(other_person_equal)
+
+        other_person_greater = SalesPerson(compare_to_person.employee_id, compare_to_person.name)
+        other_person_greater.sales = [sum(compare_to_person.sales) + 1]
+        lambda_less_than = compare_to_person.compare_to(other_person_greater)
+
+        other_person_less = SalesPerson(compare_to_person.employee_id, compare_to_person.name)
+        other_person_less.sales = [sum(compare_to_person.sales) - 1]
+        lambda_greater_than = compare_to_person.compare_to(other_person_less)
+
+        for lambda_func, expected, other in (
+                (lambda_equal, 0, other_person_equal), (lambda_less_than, -1, other_person_greater),
+                (lambda_greater_than, 1, other_person_less)):
+            methods_section.add_items(Test('compare_to', lambda_func, expected,
+                                           data=[f'this_sales: {compare_to_person.sales}',
+                                                 f'other_sales: {other.sales}']))
+    except Exception as e:
+        methods_section.add_items(
+            Test('compare_to - equal', True, False, show_actual_expected=False,
+                 data=['Test could not run due to an exception', e]),
+            Test('compare_to - less than', True, False, show_actual_expected=False,
+                 data=['Test could not run due to an exception', e]),
+            Test('compare_to - greater than', True, False, show_actual_expected=False,
+                 data=['Test could not run due to an exception', e])
+        )
+
+    # # __str__
+    string_sale_person = make_sales_person_with_sales(SALES_PERSON_ID, SALES_PERSON_NAME, sale_amount_1, sale_amount_2)
+
+    def string_id_test():
+        to_string = string_sale_person.__str__()
+        emp_id, rest = to_string.split('-')
+        return int(emp_id)
+
+    def string_name_test():
+        to_string = string_sale_person.__str__()
+        emp_id, rest = to_string.split('-')
         name, total_sales = rest.split(':')
-        tester.run_test(id, str(sales_person.get_id()), '__str__ employee_id')
-        tester.run_test(name, sales_person.get_name(), '__str__ name')
-        tester.run_test(float(total_sales.strip()), sales_person.total_sales(), '__str__ total sales')
+        return name
 
-        tester.section_end()
-        tester.area_end("Sales Person Tests")
+    def string_total_sales_test():
+        to_string = string_sale_person.__str__()
+        emp_id, rest = to_string.split('-')
+        name, total_sales = rest.split(':')
+        return float(total_sales.strip())
+
+    methods_section.add_items(Test('__str__ (id)', string_id_test, SALES_PERSON_ID))
+    methods_section.add_items(Test('__str__ (name)', string_name_test, SALES_PERSON_NAME))
+    methods_section.add_items(Test('__str__ (total sales)', string_total_sales_test, sale_amount_1 + sale_amount_2))
+
+    return constructor_section, instance_variables_section, methods_section
 
     def test_sales_force(self):
         global tester
@@ -139,45 +216,28 @@ class TestClass:
             tester.run_test(seller[2], total_sales, "quota_report - total sales", data)
             tester.run_test(seller[3], total_sales >= quota, "quota_report - hit quota", data)
 
-        # top_seller
-        expected_top_seller = SalesPerson(701, get_random_full_name())
-        expected_top_seller.enter_sale(random.randint(7000, 80000))
-        sales_force.sales_people.append(expected_top_seller)
-        actual_top_seller: SalesPerson = sales_force.top_seller()
-        expected_data = get_seller_data(expected_top_seller)
-        data = {'actual': get_list_seller_data(actual_top_seller), 'expected': [expected_data]}
-        tester.run_test(actual_top_seller, [expected_top_seller], 'top_seller - one', data)
-        sales_force.sales_people.append(expected_top_seller)
-        actual_top_seller: SalesPerson = sales_force.top_seller()
-        data = {'actual': get_list_seller_data(actual_top_seller), 'expected': [expected_data, expected_data]}
-        tester.run_test(actual_top_seller, [expected_top_seller, expected_top_seller], 'top_seller - multiple', data)
-
-        # individual_sales
-        sales_person = sales_force.individual_sales(701)
-        data = {'expected': expected_data, 'actual': get_seller_data(sales_person)}
-        tester.run_test(sales_person, expected_top_seller, 'individual_sales - exists', data)
-        sales_person = sales_force.individual_sales(702)
-        data = {'expected': None, 'actual': get_seller_data(sales_person)}
-        tester.run_test(sales_person, None, 'individual_sales - does not exist', data)
-        tester.section_end()
-        tester.area_end("Sales Person Tests")
-
-    def test_linter_sales_person(self):
-        global tester
-        tester.area_start("code style | sales person")
-        tester.lint('sales_person.py', 15)
-        tester.area_end("code style | sales person")
-
-    def test_linter_sales_force(self):
-        global tester
-        tester.area_start("code style | sales force")
-        tester.lint('sales_force.py', 15)
-        tester.area_end("code style | sales force")
-
-    @pytest.fixture(scope='session', autouse=True)
-    def summary(self):
-        yield
-        tester.end_test(90)
+        # # top_seller
+        # expected_top_seller = SalesPerson(701, get_random_full_name())
+        # expected_top_seller.enter_sale(random.randint(7000, 80000))
+        # sales_force.sales_people.append(expected_top_seller)
+        # actual_top_seller: SalesPerson = sales_force.top_seller()
+        # expected_data = get_seller_data(expected_top_seller)
+        # data = {'actual': get_list_seller_data(actual_top_seller), 'expected': [expected_data]}
+        # tester.run_test(actual_top_seller, [expected_top_seller], 'top_seller - one', data)
+        # sales_force.sales_people.append(expected_top_seller)
+        # actual_top_seller: SalesPerson = sales_force.top_seller()
+        # data = {'actual': get_list_seller_data(actual_top_seller), 'expected': [expected_data, expected_data]}
+        # tester.run_test(actual_top_seller, [expected_top_seller, expected_top_seller], 'top_seller - multiple', data)
+        #
+        # # individual_sales
+        # sales_person = sales_force.individual_sales(701)
+        # data = {'expected': expected_data, 'actual': get_seller_data(sales_person)}
+        # tester.run_test(sales_person, expected_top_seller, 'individual_sales - exists', data)
+        # sales_person = sales_force.individual_sales(702)
+        # data = {'expected': None, 'actual': get_seller_data(sales_person)}
+        # tester.run_test(sales_person, None, 'individual_sales - does not exist', data)
+        # tester.section_end()
+        # tester.area_end("Sales Person Tests")
 
 
 def get_seller_data(seller: SalesPerson):
