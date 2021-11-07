@@ -1,4 +1,6 @@
 import sys
+from collections.abc import Callable
+from types import LambdaType
 
 from pylint import epylint as lint
 
@@ -25,7 +27,7 @@ class Test(TestItem):
         A Test in a Test Suite.
 
         :param name: the name of the test
-        :param actual: the value being checked
+        :param actual: the value being checked. can be a value or a lambda function
         :param expected: the correct value
         :param data: the data used to generate the test
         :param points: the amount of points the test is worth
@@ -45,25 +47,38 @@ class Test(TestItem):
         tabs = '\t' * self.level
         print(f"{tabs}PASSED: +{self.total_points} - {self.name}")
 
-    def failed(self):
+    def failed(self, result, e=None):
+        """
+        e is an exception. this would happen when running tests on functions.
+        if an exception occurs, we do not show the actual and expected values
+        """
         self.total_points += self.default_points
         tabs = '\t' * self.level
         print(f'{tabs}FAILED: -{self.default_points}: {self.name}')
         if self.fail_fast:
             sys.exit()
-        if self.show_actual_expected:
-            print(f'{tabs}\tactual: {self.actual} | expected: {self.expected}')
+        if self.show_actual_expected and not e:
+            print(f'{tabs}\tactual: {result} | expected: {self.expected}')
         if self.data:
             print(f'{tabs}\tdata:')
             for line in self.data:
                 print(f'{tabs}\t\t{line}')
+        if e:
+            print(f'{tabs}\tan exception was thrown while running this test:')
+            print(f'{tabs}\t\t{e}:')
 
     def run(self, level=1):
         self.level = level
-        if self.actual == self.expected:
-            self.passed()
-        else:
-            self.failed()
+        try:
+            result = self.actual
+            if isinstance(self.actual, LambdaType):
+                result = self.actual()
+            if result == self.expected:
+                self.passed()
+            else:
+                self.failed(result)
+        except Exception as e:
+            self.failed(e)
 
     def fail_fast(self):
         self.fail_fast = True
@@ -175,7 +190,8 @@ class TestBuilder:
         if rc_file is None: rc_file = self.rc_file
         self.lint_tests.append(self.lint_func((file_name, points, rc_file)))
 
-    def run(self):
+    def run(self, level=0):
+        tabs = '\t' * level
         print()
         print()
 
@@ -192,17 +208,66 @@ class TestBuilder:
         #######
 
         test_intro = f' Starting test {self.name} '
-        print('{0:=^80}'.format(test_intro))
+        print('{0}{1:=^80}'.format(tabs, test_intro))
         print()
         for item in self.outline:
             if item.default_points is None:
                 item.default_points = self.default_test_points
-            item.run()
+            item.run(level=level + 1)
+            self.total_points += item.total_points
+            self.earned_points += item.earned_points
+        print()
+        test_outro = f' Test {self.name} complete: {self.earned_points}/{self.total_points} '
+        print('{0}{1:=^80}'.format(tabs, test_outro))
+
+
+class TestSuit:
+    """
+    A TestSuit
+    """
+
+    def __init__(self, name):
+        """
+        The test suite. Made up of test builders`
+        :param name: the name of the test
+
+        """
+        self.outline: list[TestBuilder] = []
+        self.total_points = 0
+        self.earned_points = 0
+        self.name = name
+
+    def add_test_builders(self, *items: TestBuilder):
+        for item in items:
+            self.outline.append(item)
+        return self
+
+    def run(self):
+        print()
+        print()
+
+        test_intro = f' Starting tests {self.name} '
+        print('{0:=^80}'.format(test_intro))
+        print()
+        for item in self.outline:
+            item.run(level=1)
             self.total_points += item.total_points
             self.earned_points += item.earned_points
         print()
         test_outro = f' Test {self.name} complete: {self.earned_points}/{self.total_points} '
         print('{0:=^80}'.format(test_outro))
+
+
+def run_safe(test):
+    """
+    helper function to try running a function
+    test should be a lambda so it gets executed lazily in this try/catch
+    """
+    try:
+        outcome_result = (True, test())
+    except Exception as e:
+        outcome_result = (False, e)
+    return outcome_result
 
 
 def create_lint_test():
