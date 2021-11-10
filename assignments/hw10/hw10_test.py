@@ -1,11 +1,8 @@
 import os
 import random
-import sys
 
-import pytest
-
-from hw10.sales_person import SalesPerson
 from hw10.sales_force import SalesForce
+from hw10.sales_person import SalesPerson
 from tests.test_framework import *
 
 
@@ -13,14 +10,18 @@ class TestClass:
 
     def test_stuff(self):
         test_suit = TestSuit('HW 10')
-        sales_person_builder = TestBuilder('Sales Person', 'sales_person.py', 10)
-        sales_force_builder = TestBuilder('Sales Force', 'sales_force.py', 10)
+        sales_person_builder = TestBuilder('Sales Person', 'sales_person.py', 15)
+        sales_force_builder = TestBuilder('Sales Force', 'sales_force.py', 16)
         constructor_section, instance_vars_section, methods_section = sales_person_test()
+        c, i, m = sales_force_test()
 
         sales_person_builder.add_items(constructor_section, instance_vars_section, methods_section)
-        sales_person_builder.run()
-        # test_suit.add_test_builders(sales_person_builder, sales_force_builder)
-        # test_suit.run()
+        # sales_person_builder.run()
+
+        sales_force_builder.add_items(c, i, m)
+        # sales_force_builder.run()
+        test_suit.add_test_builders(sales_person_builder, sales_force_builder)
+        test_suit.run()
 
 
 def make_sales_person_with_sales(sp_id, sp_name, sale_1, sale_2):
@@ -45,9 +46,9 @@ def sales_person_test():
     # test instance variables
     iv_person = SalesPerson(SALES_PERSON_ID, SALES_PERSON_NAME)
     instance_variables_section = Section('Instance Variables')
-    employee_id_test = Test('instance variable employee_id', type(iv_person.employee_id), int)
-    name_test = Test('instance variable name', type(iv_person.name), str)
-    sales_test = Test('instance variable sales', type(iv_person.sales), list)
+    employee_id_test = Test('instance variable employee_id', lambda: type(iv_person.employee_id), int)
+    name_test = Test('instance variable name', lambda: type(iv_person.name), str)
+    sales_test = Test('instance variable sales', lambda: type(iv_person.sales), list)
     instance_variables_section.add_items(employee_id_test, name_test, sales_test)
 
     # test methods
@@ -95,14 +96,11 @@ def sales_person_test():
         a = lambda: quota_sales_person.met_quota(quota_hit)
         b = lambda: quota_sales_person.met_quota(quota_miss)
 
-        quota_tests = [(a, True, quota_hit), (b, False, quota_miss)]
-        for lambda_func, expected, quota in quota_tests:
+        quota_tests = [(a, True, quota_hit, 'hit'), (b, False, quota_miss, 'miss')]
+        for lambda_func, expected, quota, test_type in quota_tests:
             methods_section.add_items(
-                Test('met_quota', lambda_func, expected,
+                Test(f'met_quota - {test_type}', lambda_func, expected,
                      data=[f'quota: {quota}', f'sales amount: {total_sales}']))
-        # methods_section.add_items(
-        #     Test('met_quota - miss', lambda: sales_person.met_quota(quota_tests[1][0]), quota_tests[1][1],
-        #          data=[f'quota: {quota_tests[1][0]}', f'sales amount: {total_sales}']))
     except Exception as e:
         methods_section.add_items(
             Test('met_quota - hit', True, False, show_actual_expected=False,
@@ -127,10 +125,11 @@ def sales_person_test():
         other_person_less.sales = [sum(compare_to_person.sales) - 1]
         lambda_greater_than = compare_to_person.compare_to(other_person_less)
 
-        for lambda_func, expected, other in (
-                (lambda_equal, 0, other_person_equal), (lambda_less_than, -1, other_person_greater),
-                (lambda_greater_than, 1, other_person_less)):
-            methods_section.add_items(Test('compare_to', lambda_func, expected,
+        for lambda_func, expected, other, test in (
+                (lambda_equal, 0, other_person_equal, 'equal'),
+                (lambda_less_than, -1, other_person_greater, 'less than'),
+                (lambda_greater_than, 1, other_person_less, 'greater than')):
+            methods_section.add_items(Test(f'compare_to - {test}', lambda_func, expected,
                                            data=[f'this_sales: {compare_to_person.sales}',
                                                  f'other_sales: {other.sales}']))
     except Exception as e:
@@ -169,75 +168,153 @@ def sales_person_test():
 
     return constructor_section, instance_variables_section, methods_section
 
-    def test_sales_force(self):
-        global tester
-        tester.area_start("Sales Force Tests")
 
-        # Test Constructor
-        tester.section("constructor")
-        sales_force = None
-        try:
-            sales_force = SalesForce()
-            tester.run_test(True, True, "initialize constructor")
-        except Exception as e:
-            print('\nFAILED: Could not initialize SalesForce, no more test will run.')
-            tester.section_end()
-            tester.area_end("Sales Force Tests")
-            sys.exit(1)
-        tester.section_end()
+def sales_force_test():
+    # Test Constructor
+    constructor_section = Section('constructor')
+    outcome, sales_force = run_safe(lambda: SalesForce())
+    if not outcome:
+        print('\nFAILED: Could not construct SalesForce, no more test will run.')
+        sys.exit(1)
+    outcome, _ = run_safe(lambda: SalesPerson(1, 'test'))
+    if not outcome:
+        print('\nFAILED: Could not construct SalesPerson, no more test will run.')
+        sys.exit(1)
 
-        # test instance variables
-        tester.section("instance variables")
-        # employee_id
-        tester.run_test(type(sales_force.sales_people), list, "instance variable sales_people")
-        tester.section_end()
+    constructor_section.add_items(Test('initialize constructor', True, True, show_actual_expected=False))
 
-        # test methods
-        tester.section("methods")
-        # add_data
-        sales_data = build_sales_data()
-        file_name = 'test_hw10_data_b02fce0e'
-        write_sales_data(sales_data, file_name)
-        sales_force.add_data(file_name)
-        for index, seller in enumerate(sales_force.sales_people):
-            tester.run_test(seller.employee_id, sales_data[index][0], "add_data - employee_id")
-            tester.run_test(seller.name, sales_data[index][1], "add_data - name")
-            tester.run_test(seller.sales, sales_data[index][2], "add_data - sales")
-        os.remove(file_name)
+    # test instance variables
+    instance_variable_section = Section('instance variables')
+    instance_variable_section.add_items(
+        Test("instance variable sales_people", lambda: type(sales_force.sales_people), list))
 
-        # quota_report
-        quota = random.randint(200, 700)
-        quota_report = sales_force.quota_report(quota)
-        for index, seller in enumerate(quota_report):
-            data = {'actual data': seller, 'expected data': sales_data[index], 'quota': quota}
-            tester.run_test(seller[0], sales_data[index][0], "quota_report - employee_id", data)
-            tester.run_test(seller[1], sales_data[index][1], "quota_report - name", data)
-            total_sales = sum(sales_data[index][2])
-            tester.run_test(seller[2], total_sales, "quota_report - total sales", data)
-            tester.run_test(seller[3], total_sales >= quota, "quota_report - hit quota", data)
+    # test methods
+    methods_section = Section('methods')
+    # add_data
+    sales_data = build_sales_data(5)
+    file_name = 'test_hw10_data_b02fce0e'
+    write_sales_data(sales_data, file_name)
 
-        # # top_seller
-        # expected_top_seller = SalesPerson(701, get_random_full_name())
-        # expected_top_seller.enter_sale(random.randint(7000, 80000))
-        # sales_force.sales_people.append(expected_top_seller)
-        # actual_top_seller: SalesPerson = sales_force.top_seller()
-        # expected_data = get_seller_data(expected_top_seller)
-        # data = {'actual': get_list_seller_data(actual_top_seller), 'expected': [expected_data]}
-        # tester.run_test(actual_top_seller, [expected_top_seller], 'top_seller - one', data)
-        # sales_force.sales_people.append(expected_top_seller)
-        # actual_top_seller: SalesPerson = sales_force.top_seller()
-        # data = {'actual': get_list_seller_data(actual_top_seller), 'expected': [expected_data, expected_data]}
-        # tester.run_test(actual_top_seller, [expected_top_seller, expected_top_seller], 'top_seller - multiple', data)
-        #
-        # # individual_sales
-        # sales_person = sales_force.individual_sales(701)
-        # data = {'expected': expected_data, 'actual': get_seller_data(sales_person)}
-        # tester.run_test(sales_person, expected_top_seller, 'individual_sales - exists', data)
-        # sales_person = sales_force.individual_sales(702)
-        # data = {'expected': None, 'actual': get_seller_data(sales_person)}
-        # tester.run_test(sales_person, None, 'individual_sales - does not exist', data)
-        # tester.section_end()
-        # tester.area_end("Sales Person Tests")
+    def add_data_test(file):
+        sf = SalesForce()
+        sf.add_data(file)
+        return sf
+
+    outcome, result = run_safe(lambda: add_data_test(file_name))
+    for index, data in enumerate(sales_data):
+        if outcome:
+            seller = result.sales_people[index]
+            methods_section.add_items(Test(f"add_data {index} - employee_id", seller.employee_id, data[0]))
+            methods_section.add_items(Test(f"add_data {index} - name", seller.name, data[1]))
+            methods_section.add_items(Test(f"add_data {index} - sales", seller.sales, data[2]))
+        else:
+            methods_section.add_items(Test(f"add_data {index} - employee_id - unable to write sales data", True, False,
+                                           show_actual_expected=False))
+            methods_section.add_items(
+                Test(f"add_data {index} - name - unable to write sales data", True, False, show_actual_expected=False))
+            methods_section.add_items(
+                Test(f"add_data {index} - sales - unable to write sales data", True, False, show_actual_expected=False))
+    os.remove(file_name)
+
+    # quota_report
+    def fail_quota_report(sales_force_amount):
+        for i in range(sales_force_amount):
+            methods_section.add_items(
+                Test(f'quota_report {i} - unable to run test - employee_id', True, False, show_actual_expected=False),
+                Test(f'quota_report {i} - unable to run test - name', True, False, show_actual_expected=False),
+                Test(f'quota_report {i} - unable to run test - total sales', True, False, show_actual_expected=False),
+                Test(f'quota_report {i} - unable to run test - hit quota', True, False, show_actual_expected=False)
+            )
+
+    quota = random.randint(200, 700)
+    sales_force_amount = 5
+    quota_sales_force_data_expected = build_sales_data(sales_force_amount)
+    quota_sales_force = get_full_sales_force(quota_sales_force_data_expected)
+    if quota_sales_force:
+        outcome, quota_report_actual = run_safe(lambda: quota_sales_force.quota_report(quota))
+        if outcome:
+            for i in range(sales_force_amount):
+                total_sales = sum(quota_sales_force_data_expected[i][2])
+                methods_section.add_items(
+                    Test(f'quota_report {i} - employee_id', quota_report_actual[i][0],
+                         quota_sales_force_data_expected[i][0],
+                         data=print_friendly_sales_data(quota_sales_force_data_expected)),
+                    Test(f'quota_report {i} - name', quota_report_actual[i][1], quota_sales_force_data_expected[i][1],
+                         data=print_friendly_sales_data(quota_sales_force_data_expected)),
+                    Test(f'quota_report {i} - total sales', quota_report_actual[i][2], total_sales,
+                         data=print_friendly_sales_data(quota_sales_force_data_expected)),
+                    Test(f'quota_report {i} - hit quota', quota_report_actual[i][3], total_sales >= quota,
+                         data=print_friendly_sales_data(quota_sales_force_data_expected))
+                )
+            pass
+        else:
+            fail_quota_report(sales_force_amount)
+    else:
+        fail_quota_report(sales_force_amount)
+
+    # top_seller one
+    expected_top_seller = SalesPerson(701, get_random_full_name())
+    expected_top_seller.enter_sale(random.randint(7000, 80000))
+    top_seller_sales_force_data = build_sales_data(5)
+    top_seller_sales_force = get_full_sales_force(top_seller_sales_force_data)
+    if top_seller_sales_force:
+        top_seller_sales_force.sales_people.append(expected_top_seller)
+        methods_section.add_items(
+            Test('top_seller - one', lambda: top_seller_sales_force.top_seller(), [expected_top_seller],
+                 data=print_friendly_sales_data(top_seller_sales_force_data, expected_top_seller)))
+    else:
+        methods_section.add_items(
+            Test('top_seller - one - could not create sales force', False, True, show_actual_expected=False))
+
+    # top_seller many
+    expected_top_seller_many = SalesPerson(701, get_random_full_name())
+    expected_top_seller_many.enter_sale(random.randint(7000, 80000))
+    top_seller_many_sales_force_data = build_sales_data(5)
+    top_seller_many_sales_force = get_full_sales_force(top_seller_many_sales_force_data)
+    if top_seller_many_sales_force:
+        top_seller_many_sales_force.sales_people.append(expected_top_seller_many)
+        top_seller_many_sales_force.sales_people.append(expected_top_seller_many)
+        methods_section.add_items(
+            Test('top_seller - multiple', lambda: top_seller_many_sales_force.top_seller(),
+                 [expected_top_seller_many, expected_top_seller_many],
+                 data=print_friendly_sales_data(top_seller_many_sales_force_data, expected_top_seller_many,
+                                                expected_top_seller_many)))
+    else:
+        methods_section.add_items(
+            Test('top_seller - multiple - could not create sales force', False, True, show_actual_expected=False))
+
+    # individual_sales
+    individual_seller_one = SalesPerson(7, get_random_full_name())
+    individual_sales_sales_force_data = build_sales_data(5)
+    individual_seller_sales_force = get_full_sales_force(individual_sales_sales_force_data)
+    if individual_seller_sales_force:
+        individual_seller_sales_force.sales_people.insert(
+            random.randrange(0, len(individual_seller_sales_force.sales_people)), individual_seller_one)
+        methods_section.add_items(
+            Test('individual_sales - exists', lambda: individual_seller_sales_force.individual_sales(7),
+                 individual_seller_one,
+                 data=print_friendly_sales_data(individual_sales_sales_force_data,
+                                                individual_seller_one)))
+        methods_section.add_items(
+            Test('individual_sales - does not exist', lambda: individual_seller_sales_force.individual_sales(8), None,
+                 data=print_friendly_sales_data(individual_sales_sales_force_data, individual_seller_one)))
+    else:
+        methods_section.add_items(
+            Test('individual_sales - exists - could not create sales force', True, False, show_actual_expected=False))
+
+    return constructor_section, instance_variable_section, methods_section
+
+
+def get_full_sales_force(data):
+    try:
+        sf = SalesForce()
+        for d in data:
+            person = SalesPerson(d[0], d[1])
+            person.sales = d[2]
+            sf.sales_people.append(person)
+        return sf
+    except:
+        return None
 
 
 def get_seller_data(seller: SalesPerson):
@@ -271,10 +348,24 @@ def get_random_full_name():
     return get_random_name() + ' ' + get_random_name()
 
 
-def build_sales_data():
-    count = 5
+def print_friendly_sales_data(sales_data, *args: SalesPerson):
     data = []
-    for i in range(1, count + 1):
+    for id, name, sales in sales_data:
+        data.append(f'id: {id}, name: {name}, sales: {sales}')
+    for person in args:
+        data.append(f'id: {person.employee_id}, name: {person.name}, sales: {person.sales}')
+    return data
+
+
+def build_sales_data(number_of_sales_people):
+    """
+    returns a list of sales people
+    [
+        [id, name, sales]
+    ]
+    """
+    data = []
+    for i in range(1, number_of_sales_people + 1):
         id = random.randint(i * 100 + 1, i * 100 + 100)
         name = get_random_full_name()
         sales_count = random.randint(1, 5)
