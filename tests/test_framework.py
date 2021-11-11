@@ -1,5 +1,193 @@
-from tests.code_style import code_style
+import sys
+
 from pylint import epylint as lint
+
+
+class TestItem:
+    def __init__(self, name: str, default_points: int):
+        # default points are how much an individual test is worth
+        #   this is so a section can have a default for all of the questions in the section
+        # total points are the sum of the total possible points.
+        self.default_points = default_points
+        self.total_points = 0
+        self.earned_points = 0
+        self.name = name
+        self.level = 1
+
+    def run(self):
+        pass
+
+
+class Test(TestItem):
+    def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False,
+                 show_actual_expected=True):
+        super().__init__(name, points)
+        self.actual = actual
+        self.expected = expected
+        self.data = data
+        self.fail_fast = fail_fast
+        self.show_actual_expected = show_actual_expected
+
+    def PASSED(self):
+        self.earned_points += self.default_points
+        self.total_points += self.default_points
+        tabs = '\t' * self.level
+        print(f"{tabs}PASSED: +{self.total_points} - {self.name}")
+
+    def FAILED(self):
+        self.total_points += self.default_points
+        tabs = '\t' * self.level
+        print(f'{tabs}FAILED -{self.default_points}: {self.name}')
+        if self.fail_fast:
+            sys.exit()
+        if self.show_actual_expected:
+            print(f'{tabs}\tactual: {self.actual} | expected: {self.expected}')
+        if self.data:
+            print(f'{tabs}\tdata: {self.data}')
+
+    def run(self, level=1):
+        self.level = level
+        if self.actual == self.expected:
+            self.PASSED()
+        else:
+            self.FAILED()
+
+    def fail_fast(self):
+        self.fail_fast = True
+        return self
+
+
+class Section(TestItem):
+    def __init__(self, name, points=None, custom_total_points=None):
+        super().__init__(name, points)
+        self.outline: list[TestItem] = []
+        self.custom_total_points = custom_total_points
+        # case where points are assigned up front and subtracted for wrong answers
+        if not custom_total_points is None:
+            self.total_points = custom_total_points
+            self.earned_points = custom_total_points
+
+    def add_items(self, *items: TestItem):
+        for item in items:
+            self.outline.append(item)
+
+    def run(self, level=1):
+        tabs = '\t' * level
+        start_label = f' {self.name} start '
+        print()
+        print('{0}{1:-^70}'.format(tabs, start_label))
+        for item in self.outline:
+            if item.default_points is None:
+                item.default_points = self.default_points
+            item.run(level + 1)
+            if self.custom_total_points is None:
+                self.total_points += item.total_points
+                self.earned_points += item.earned_points
+            # case where points are assigned up front and subtracted for wrong answers
+            else:
+                self.earned_points -= item.total_points
+        end_label = f' {self.name} end {self.earned_points}/{self.total_points} '
+        print('{0}{1:-^70}'.format(tabs, end_label))
+
+
+class TestBuilder:
+    def __init__(self, name, file_name, linter_points, default_test_points=1):
+        self.outline: list[TestItem] = []
+        self.total_points = 0
+        self.earned_points = 0
+        self.default_test_points = default_test_points
+        self.name = name
+        self.blacklist = {
+            'importos': 'no need for the os module. please remove it to continue.',
+            'fromos': 'no need for the os module. please remove it to continue.',
+            'importpathlib': 'no need for the pathlib module. please remove it to continue.',
+            'frompathlib': 'no need for the pathlib module. please remove it to continue.',
+        }
+        self.file_name = file_name
+        self.rc_file = '../../.pylintrc'
+        self.linter_points = linter_points
+        self.blacklist_func = create_blacklist_test()
+        self.lint_func = create_lint_test()
+
+    def create_blacklist_tests(self):
+        pass
+
+    def add_items(self, *items: TestItem):
+        for item in items:
+            self.outline.append(item)
+        return self
+
+    def run(self):
+        print()
+        print()
+
+        ### BLACKLIST TESTS ###
+        self.blacklist_func((self.blacklist, self.file_name))
+        #######
+
+        ### LINTING TESTS ###
+        lint_test = self.lint_func((self.file_name, self.linter_points, self.rc_file))
+        if lint_test:
+            self.outline.append(lint_test)
+        #######
+
+        test_intro = f' Starting test {self.name} '
+        print('{0:=^80}'.format(test_intro))
+        print()
+        for item in self.outline:
+            if item.default_points is None:
+                item.default_points = self.default_test_points
+            item.run()
+            self.total_points += item.total_points
+            self.earned_points += item.earned_points
+        print()
+        test_outro = f' Test {self.name} complete: {self.earned_points}/{self.total_points} '
+        print('{0:=^80}'.format(test_outro))
+
+
+def create_lint_test():
+    def create_lint_section(x) -> Section:
+        test_file, points, rc_file = x
+        linting = Section('Linting', custom_total_points=points)
+        (pylint_stdout, pylint_stderr) = lint.py_run(f'{test_file} --rcfile {rc_file}', return_std=True)
+        output = pylint_stdout.getvalue()
+        error_list = output.split("\n")[1:-1]
+        # case when the errors exceeds the possible points
+        error_range = range(len(error_list))
+        if points < len(error_list):
+            error_range = range(points)
+        for i in error_range:
+            linting.add_items(Test(error_list[i], None, 1, points=1))
+        if points < len(error_list):
+            linting.add_items(Test(f'...and {len(error_list) - points} more errors', None, 1, points=0))
+        return linting
+
+    return create_lint_section
+
+
+def create_blacklist_test():
+    def create_blacklist_code_analyzer(x) -> list[Test]:
+        blacklist, test_file = x
+        tests = []
+        with open(test_file, 'r') as file:
+            for index, line in enumerate(file):
+                found_items = list(filter(lambda x: x.replace(' ', '').lower() in line, blacklist.keys()))
+                for item in found_items:
+                    tests.append(
+                        Test(f'Line {index + 1} - {blacklist[item]}', 0, 1, show_actual_expected=False, points=100))
+            try:
+                tests[-1].fail_fast = True
+            except IndexError:
+                pass
+        for item in tests:
+            item.run()
+
+    return create_blacklist_code_analyzer
+
+
+"""
+DEPRECATED
+"""
 
 
 class Test_Framework:
@@ -18,19 +206,17 @@ class Test_Framework:
         self.section_questions_correct = 0
         self.section_questions_total = 0
 
-
     def PASSED(self, test_name):
         self.section_questions_correct += 1
         self.section_score += self.sub_points
 
         print(f"\tPASSED: +{self.sub_points} - {test_name}")
 
-
     def FAILED(self, actual, expected, test_name, data):
         print(f'\tFAILED -{self.sub_points}: {test_name}')
         print(f'\t\tactual: {actual} | expected: {expected}')
-        print(f'\t\tdata: {data}')
-
+        if data:
+            print(f'\t\tdata: {data}')
 
     def run_test(self, actual, expected, test_name="", data=""):
         self.section_questions_total += 1
@@ -52,7 +238,8 @@ class Test_Framework:
         self.test_questions_correct += self.area_questions_correct
         self.test_questions_total += self.area_questions_total
 
-        print(f'\n============================== {name} end - {self.area_questions_correct}/{self.area_questions_total} +{self.area_score} ===============================\n')
+        print(
+            f'\n============================== {name} end - {self.area_questions_correct}/{self.area_questions_total} +{self.area_score} ===============================\n')
 
     def section(self, name):
         self.section_score = 0
@@ -88,4 +275,3 @@ class Test_Framework:
             print("\nFAILED")
             print(output)
             print('-' + str(points_off))
-
