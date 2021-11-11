@@ -1,7 +1,7 @@
 import random
 
 
-def calculate(num):
+def create(num):
     data = []
     res = []
     for i in range(num):
@@ -14,7 +14,7 @@ def calculate(num):
         balance_payment = balance_payment_days * days
         payment_days = random.randint(1, 1000)
         balance_days = balance_payment + payment_days
-        day_options = list(range(1,32))
+        day_options = list(range(1, 32))
         day_options.remove(days)
         payment_day = random.choice(day_options)
         payment = payment_days / (days - payment_day)
