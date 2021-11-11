@@ -1,9 +1,6 @@
-import json
-
-from tests.test_framework import *
-
 from hw2 import interest
-from tests import api_service
+from tests.hw2 import random_tests
+from tests.test_framework import *
 
 
 class TestClass:
@@ -11,8 +8,8 @@ class TestClass:
     def test_stuff(self, monkeypatch, capfd):
         builder = TestBuilder('Interest', 'interest.py', 20, 5)
         static_section = TestClass.static_tests('Static', monkeypatch, capfd)
-        api_section = TestClass.api_tests('Dynamic', monkeypatch, capfd)
-        builder.add_items(static_section, api_section)
+        dynamic_section = TestClass.dynamic_tests('Dynamic', monkeypatch, capfd)
+        builder.add_items(static_section, dynamic_section)
         builder.run()
 
     @staticmethod
@@ -26,12 +23,11 @@ class TestClass:
         return TestClass.run_test(inputs, name, monkeypatch, capfd)
 
     @staticmethod
-    def api_tests(name, monkeypatch, capfd):
-        response = api_service.test('hw1', 'GET', params={'number': 10})
-        data = json.loads(response.text)
+    def dynamic_tests(name, monkeypatch, capfd):
+        data = random_tests.calculate(10)
         input = data['data']
-        answers = data['answers']
-        test_data = TestClass.convert_test_data(input, answers)
+        res = data['res']
+        test_data = TestClass.convert_test_data(input, res)
         return TestClass.run_test(test_data, name, monkeypatch, capfd)
 
     @staticmethod
