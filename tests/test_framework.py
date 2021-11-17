@@ -178,6 +178,9 @@ class TestBuilder:
         pass
 
     def add_to_blacklist(self, items: dict):
+        """
+        adds the items in the dictionary to the existing blacklist
+        """
         self.blacklist.update(items)
 
     def add_items(self, *items: TestItem):
@@ -262,6 +265,7 @@ def run_safe(test):
     """
     helper function to try running a function
     test should be a lambda so it gets executed lazily in this try/catch
+    returns a tuple (boolean outcome, any result)
     """
     try:
         outcome_result = (True, test())
