@@ -22,7 +22,7 @@ class TestItem:
 
 class Test(TestItem):
     def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False,
-                 show_actual_expected=True):
+                 show_actual_expected=True, exception_message=None):
         """
         A Test in a Test Suite.
 
@@ -40,6 +40,7 @@ class Test(TestItem):
         self.data = data
         self.fail_fast = fail_fast
         self.show_actual_expected = show_actual_expected
+        self.exception_message = exception_message
 
     def passed(self):
         self.earned_points += self.default_points
@@ -57,15 +58,19 @@ class Test(TestItem):
         print(f'{tabs}FAILED: -{self.default_points}: {self.name}')
         if self.fail_fast:
             sys.exit()
-        if self.show_actual_expected and not e:
-            print(f'{tabs}\tactual: {result} | expected: {self.expected}')
-        if self.data:
-            print(f'{tabs}\tdata:')
-            for line in self.data:
-                print(f'{tabs}\t\t{line}')
         if e:
             print(f'{tabs}\tan exception was thrown while running this test:')
-            print(f'{tabs}\t\t{e}:')
+            print(f'{tabs}\t\t\t{e}')
+            if self.exception_message:
+                print(f'{tabs}\t{self.exception_message}')
+        else:
+            if self.show_actual_expected:
+                print(f'{tabs}\tactual: {result} | expected: {self.expected}')
+            if self.data:
+                print(f'{tabs}\tdata:')
+                for line in self.data:
+                    print(f'{tabs}\t\t{line}')
+
 
     def run(self, level=1):
         self.level = level
@@ -78,7 +83,7 @@ class Test(TestItem):
             else:
                 self.failed(result)
         except Exception as e:
-            self.failed(e)
+            self.failed(None, e=e)
 
     def fail_fast(self):
         self.fail_fast = True
@@ -314,3 +319,9 @@ def create_blacklist_test():
             item.run()
 
     return create_blacklist_code_analyzer
+
+def gen(lst):
+    i = 0
+    while True:
+        yield lst[i % len(lst)]
+        i += 1
