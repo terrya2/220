@@ -1,5 +1,5 @@
 import sys
-from collections.abc import Callable
+from io import StringIO
 from types import LambdaType
 
 from pylint import epylint as lint
@@ -70,7 +70,6 @@ class Test(TestItem):
                 print(f'{tabs}\tdata:')
                 for line in self.data:
                     print(f'{tabs}\t\t{line}')
-
 
     def run(self, level=1):
         self.level = level
@@ -320,8 +319,44 @@ def create_blacklist_test():
 
     return create_blacklist_code_analyzer
 
+
 def gen(lst):
     i = 0
     while True:
         yield lst[i % len(lst)]
         i += 1
+
+
+class ListStream:
+    def __init__(self):
+        self.data = []
+
+    def write(self, s: str):
+        if s == '\n':
+            return
+        self.data.append(s)
+
+    def flush(self, *args):
+        pass
+
+
+def getIO(func, input: list[str] = None):
+    error = None
+    res = None
+    output = ListStream()
+    sys.stdout = output
+    # output = StringIO()
+    if input:
+        input_io = StringIO('\n'.join(input))
+        sys.stdin = input_io
+    try:
+        res = func()
+        output = output.data
+    except AttributeError:
+        error = 'unexpected input'
+    except EOFError:
+        error = 'input error.'
+    sys.stdout = sys.__stdout__  # resets stdout
+    sys.stdin = sys.__stdin__
+    # output = output.getvalue().splitlines()
+    return (output, res, error)
