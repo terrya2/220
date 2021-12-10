@@ -18,14 +18,12 @@ class MockWin:
         return self.height
 
 
-class TestClass:
-
-    def test_hw(self):
-        builder = TestBuilder('Bumper', 'bumper.py', 15)
-        static_tests = build_static_section()
-        dynamic_tests = build_dynamic_section()
-        builder.add_items(static_tests, dynamic_tests)
-        builder.run()
+def main():
+    builder = TestBuilder('Bumper', 'bumper.py', 15)
+    static_tests = build_static_section()
+    dynamic_tests = build_dynamic_section()
+    builder.add_items(static_tests, dynamic_tests)
+    builder.run()
 
 
 # static tests
@@ -160,3 +158,6 @@ def run_test(test_cases, test_type):
 
     section.add_items(collide_section, get_random_section, hit_vertical_section, hit_horizontal_section)
     return section
+
+if __name__ == '__main__':
+    main()

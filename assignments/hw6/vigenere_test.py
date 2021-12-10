@@ -3,18 +3,17 @@ from tests.hw6 import random_tests
 from tests.test_framework import *
 
 
-class TestClass:
 
-    def test_hw(self):
-        builder = TestBuilder('Vigenere', 'vigenere.py', 15, 5)
-        builder.rc_file = '../../tests/hw6/.pylintrc'
-        builder.add_to_blacklist({
-            'enumerate': 'enumerate() function should not be used in this assignment.'
-        })
-        static_tests = build_static_tests()
-        dynamic_tests = build_dynamic_tests()
-        builder.add_items(static_tests, dynamic_tests)
-        builder.run()
+def main():
+    builder = TestBuilder('Vigenere', 'vigenere.py', 15, 5)
+    builder.rc_file = '../../tests/hw6/.pylintrc'
+    builder.add_to_blacklist({
+        'enumerate': 'enumerate() function should not be used in this assignment.'
+    })
+    static_tests = build_static_tests()
+    dynamic_tests = build_dynamic_tests()
+    builder.add_items(static_tests, dynamic_tests)
+    builder.run()
 
 
 def build_static_tests():
@@ -48,3 +47,6 @@ def convert_test_data(data):
     for test in data:
         inputs.append((test['message'], test['key'], test['cipherText']))
     return inputs
+
+if __name__ == '__main__':
+    main()
