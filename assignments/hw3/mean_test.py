@@ -39,7 +39,7 @@ def run_test(data, test_type):
     outputs = []
     for inp in data:
         userIn = inp[0]
-        output, res, error = getIO(mean.main, userIn)
+        output, res, error = get_IO(mean.main, userIn)
         output = output[-3:]  # get the last 3 outputs
         outputs.append({'rms_average': float(output[0]), 'harmonic_mean': float(output[1]),
                         'geometric_mean': float(output[2]), 'data': userIn})

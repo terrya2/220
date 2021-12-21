@@ -34,7 +34,7 @@ def run_test(data, name) -> Section:
     outputs = []
     for inp in data:
         userIn = inp[0]
-        output, res, error = getIO(interest.main, userIn)
+        output, res, error = get_IO(interest.main, userIn)
         outputs.append(output)
 
     for index, actual in enumerate(outputs):
