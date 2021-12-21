@@ -1,5 +1,5 @@
 import sys
-from collections.abc import Callable
+from io import StringIO
 from types import LambdaType
 
 from pylint import epylint as lint
@@ -22,7 +22,7 @@ class TestItem:
 
 class Test(TestItem):
     def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False,
-                 show_actual_expected=True):
+                 show_actual_expected=True, exception_message=None):
         """
         A Test in a Test Suite.
 
@@ -40,6 +40,7 @@ class Test(TestItem):
         self.data = data
         self.fail_fast = fail_fast
         self.show_actual_expected = show_actual_expected
+        self.exception_message = exception_message
 
     def passed(self):
         self.earned_points += self.default_points
@@ -57,15 +58,18 @@ class Test(TestItem):
         print(f'{tabs}FAILED: -{self.default_points}: {self.name}')
         if self.fail_fast:
             sys.exit()
-        if self.show_actual_expected and not e:
-            print(f'{tabs}\tactual: {result} | expected: {self.expected}')
-        if self.data:
-            print(f'{tabs}\tdata:')
-            for line in self.data:
-                print(f'{tabs}\t\t{line}')
         if e:
             print(f'{tabs}\tan exception was thrown while running this test:')
-            print(f'{tabs}\t\t{e}:')
+            print(f'{tabs}\t\t\t{e}')
+            if self.exception_message:
+                print(f'{tabs}\t{self.exception_message}')
+        else:
+            if self.show_actual_expected:
+                print(f'{tabs}\tactual: {result} | expected: {self.expected}')
+            if self.data:
+                print(f'{tabs}\tdata:')
+                for line in self.data:
+                    print(f'{tabs}\t\t{line}')
 
     def run(self, level=1):
         self.level = level
@@ -78,7 +82,7 @@ class Test(TestItem):
             else:
                 self.failed(result)
         except Exception as e:
-            self.failed(e)
+            self.failed(None, e=e)
 
     def fail_fast(self):
         self.fail_fast = True
@@ -281,7 +285,7 @@ def create_lint_test():
         (pylint_stdout, pylint_stderr) = lint.py_run(f'{test_file} --rcfile {rc_file}', return_std=True)
         output = pylint_stdout.getvalue()
         error_list = output.split("\n")[1:-1]
-        # case when the errors exceeds the possible points
+        # case when the errors exceed the possible points
         error_range = range(len(error_list))
         if points < len(error_list):
             error_range = range(points)
@@ -314,3 +318,55 @@ def create_blacklist_test():
             item.run()
 
     return create_blacklist_code_analyzer
+
+
+def gen(lst):
+    i = 0
+    while True:
+        yield lst[i % len(lst)]
+        i += 1
+
+
+class ListStream:
+    def __init__(self):
+        self.data = []
+
+    def write(self, s: str):
+        if s == '\n':
+            return
+        self.data.append(s)
+
+    def flush(self, *args):
+        pass
+
+
+def get_IO(func, input: list[str] = None):
+    """
+    captures the output of func
+    returns a tuple of:
+      the output as a list, where each line is an element in the list
+      the return value of the function
+      any errors that may have been thrown
+    optional input argument to pass to func as mock input
+    input should be a list of strings, where each element is an input
+    """
+
+    error = None
+    res = None
+    output = ListStream()
+    sys.stdout = output
+    # output = StringIO()
+    if input:
+        input_io = StringIO('\n'.join(input))
+        sys.stdin = input_io
+    try:
+        res = func()
+        output = output.data
+    except AttributeError:
+        error = 'unexpected input'
+    except EOFError:
+        error = 'input error.'
+    sys.stdout = sys.__stdout__  # resets stdout
+    sys.stdin = sys.__stdin__
+    # output = output.getvalue().splitlines()
+    return (output, res, error)

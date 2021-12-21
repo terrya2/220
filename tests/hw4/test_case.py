@@ -24,11 +24,17 @@ class TestCase:
             inp += road.get_user_input()
         return list(map(str, inp))
 
-    def set_actual_values(self, user_output):
-        self.actual_avg_cars = user_output.pop(len(user_output) - 1)
-        self.actual_total_cars = user_output.pop(len(user_output) - 1)
-        for index, road_avg in enumerate(user_output):
-            self.roads[index].actual_output = road_avg
+    def set_actual_values(self, raw_user_output):
+        self.actual_avg_cars = raw_user_output.pop(len(raw_user_output) - 1)
+        self.actual_total_cars = raw_user_output.pop(len(raw_user_output) - 1)
+        # print get roads
+        raw_user_output.pop(0)
+        for road in self.roads:
+            # get days
+            raw_user_output.pop(0)
+            for day in range(road.days):
+                raw_user_output.pop(0)
+            road.actual_output = raw_user_output.pop(0)
 
 
 class Road:

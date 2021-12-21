@@ -1,24 +1,22 @@
 import os
 
-from hw7.weighted_average import weighted_average
+from hw7.weighted_average_s import weighted_average
 from tests.hw7 import random_tests
 from tests.test_framework import *
 
 
-class TestClass:
-
-    def test_hw(self):
-        builder = TestBuilder('Weighted Average', 'weighted_average.py', 15, 1)
-        builder.rc_file = '../../tests/hw6/.pylintrc'
-        static_section, static_files = build_static_section()
-        dynamic_section, dynamic_files = build_dynamic_section()
-        builder.add_items(static_section, dynamic_section)
-        builder.run()
-        for input_file, output_file in static_files:
-            os.remove(output_file)
-        for input_file, output_file in dynamic_files:
-            os.remove(input_file)
-            os.remove(output_file)
+def main():
+    builder = TestBuilder('Weighted Average', 'weighted_average.py', 15, 1)
+    builder.rc_file = '../../tests/hw6/.pylintrc'
+    static_section, static_files = build_static_section()
+    dynamic_section, dynamic_files = build_dynamic_section()
+    builder.add_items(static_section, dynamic_section)
+    builder.run()
+    for input_file, output_file in static_files:
+        os.remove(output_file)
+    for input_file, output_file in dynamic_files:
+        os.remove(input_file)
+        os.remove(output_file)
 
 
 test_folder = '../../tests/hw7'
@@ -85,3 +83,6 @@ def run_test(data, file_prefix, test_type):
                 sub_section.add_items(Test(f'test {index}', actual_line, expected_lines[index]))
         section.add_items(sub_section)
     return section, files
+
+if __name__ == '__main__':
+    main()

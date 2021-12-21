@@ -3,44 +3,39 @@ from tests.hw2 import random_tests
 from tests.test_framework import *
 
 
-class TestClass:
-
-    def test_stuff(self, monkeypatch, capfd):
-        builder = TestBuilder('Interest', 'interest.py', 20, 5)
-        static_section = static_tests('Static', monkeypatch, capfd)
-        dynamic_section = dynamic_tests('Dynamic', monkeypatch, capfd)
-        builder.add_items(static_section, dynamic_section)
-        builder.run()
+def main():
+    builder = TestBuilder('Interest', 'interest.py', 20, 5)
+    static_section = static_tests('Static')
+    dynamic_section = dynamic_tests('Dynamic')
+    builder.add_items(static_section, dynamic_section)
+    builder.run()
 
 
-def static_tests(name, monkeypatch, capfd):
+def static_tests(name):
     inputs = [
         (['15.84', '31', '850', '400', '20'], '9.35'),
         (['7.07', '30', '700', '100', '1'], '3.55'),
         (['0', '29', '0', '100', '29'], '0.0'),
         (['99', '31', '1234', '1234', '31'], '101.81')
     ]
-    return run_test(inputs, name, monkeypatch, capfd)
+    return run_test(inputs, name)
 
 
-def dynamic_tests(name, monkeypatch, capfd):
+def dynamic_tests(name):
     data = random_tests.create(10)
     input = data['data']
     res = data['res']
     test_data = convert_test_data(input, res)
-    return run_test(test_data, name, monkeypatch, capfd)
+    return run_test(test_data, name)
 
 
-def run_test(data, name, monkeypatch, capfd) -> Section:
+def run_test(data, name) -> Section:
     section = Section(name)
     outputs = []
     for inp in data:
         userIn = inp[0]
-        i = iter(userIn)
-        monkeypatch.setattr('builtins.input', lambda inputMessage: next(i))
-        interest.main()
-        captured = capfd.readouterr()
-        outputs.append(captured.out.strip())
+        output, res, error = getIO(interest.main, userIn)
+        outputs.append(output)
 
     for index, actual in enumerate(outputs):
         expected = data[index][1]
@@ -50,7 +45,7 @@ def run_test(data, name, monkeypatch, capfd) -> Section:
                      f'payment: {float(data[index][0][3])}',
                      f'payment_day: {float(data[index][0][4])}'
                      ]
-        section.add_items(Test(f'test {index}', actual, expected, used_data))
+        section.add_items(Test(f'test {index}', actual[5], expected, used_data))
 
     return section
 
@@ -62,3 +57,7 @@ def convert_test_data(data, response):
                                values['paymentDay']]))
         inputs.append((input, str(response[index])))
     return inputs
+
+
+if __name__ == '__main__':
+    main()

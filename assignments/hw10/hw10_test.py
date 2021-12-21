@@ -6,22 +6,20 @@ from hw10.sales_person import SalesPerson
 from tests.test_framework import *
 
 
-class TestClass:
+def main():
+    test_suit = TestSuit('HW 10')
+    sales_person_builder = TestBuilder('Sales Person', 'sales_person.py', 15)
+    sales_force_builder = TestBuilder('Sales Force', 'sales_force.py', 16)
+    constructor_section, instance_vars_section, methods_section = sales_person_test()
+    c, i, m = sales_force_test()
 
-    def test_stuff(self):
-        test_suit = TestSuit('HW 10')
-        sales_person_builder = TestBuilder('Sales Person', 'sales_person.py', 15)
-        sales_force_builder = TestBuilder('Sales Force', 'sales_force.py', 16)
-        constructor_section, instance_vars_section, methods_section = sales_person_test()
-        c, i, m = sales_force_test()
+    sales_person_builder.add_items(constructor_section, instance_vars_section, methods_section)
+    # sales_person_builder.run()
 
-        sales_person_builder.add_items(constructor_section, instance_vars_section, methods_section)
-        # sales_person_builder.run()
-
-        sales_force_builder.add_items(c, i, m)
-        # sales_force_builder.run()
-        test_suit.add_test_builders(sales_person_builder, sales_force_builder)
-        test_suit.run()
+    sales_force_builder.add_items(c, i, m)
+    # sales_force_builder.run()
+    test_suit.add_test_builders(sales_person_builder, sales_force_builder)
+    test_suit.run()
 
 
 def make_sales_person_with_sales(sp_id, sp_name, sale_1, sale_2):
@@ -41,7 +39,7 @@ def sales_person_test():
     if not outcome:
         print('\nFAILED: Could not construct SalesPerson, no more test will run.')
         sys.exit(1)
-    constructor_section.add_items(Test('initialize constructor', True, True, show_actual_expected=False))
+    constructor_section.add_items(Test('initialize constructor', True, True))
 
     # test instance variables
     iv_person = SalesPerson(SALES_PERSON_ID, SALES_PERSON_NAME)
@@ -235,16 +233,17 @@ def sales_force_test():
         if outcome:
             for i in range(sales_force_amount):
                 total_sales = sum(quota_sales_force_data_expected[i][2])
+                data = print_friendly_sales_data(quota_sales_force_data_expected)
                 methods_section.add_items(
                     Test(f'quota_report {i} - employee_id', quota_report_actual[i][0],
                          quota_sales_force_data_expected[i][0],
-                         data=print_friendly_sales_data(quota_sales_force_data_expected)),
+                         data=data),
                     Test(f'quota_report {i} - name', quota_report_actual[i][1], quota_sales_force_data_expected[i][1],
-                         data=print_friendly_sales_data(quota_sales_force_data_expected)),
+                         data=data),
                     Test(f'quota_report {i} - total sales', quota_report_actual[i][2], total_sales,
-                         data=print_friendly_sales_data(quota_sales_force_data_expected)),
+                         data=data),
                     Test(f'quota_report {i} - hit quota', quota_report_actual[i][3], total_sales >= quota,
-                         data=print_friendly_sales_data(quota_sales_force_data_expected))
+                         data=data)
                 )
             pass
         else:
@@ -383,3 +382,6 @@ def write_sales_data(data, file_name):
             name = person[1]
             sales = ' '.join(map(str, person[2]))
             test_data_file.write(f'{id}, {name}, {sales}\n')
+
+if __name__ == '__main__':
+    main()
