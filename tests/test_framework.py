@@ -285,7 +285,7 @@ def create_lint_test():
         (pylint_stdout, pylint_stderr) = lint.py_run(f'{test_file} --rcfile {rc_file}', return_std=True)
         output = pylint_stdout.getvalue()
         error_list = output.split("\n")[1:-1]
-        # case when the errors exceeds the possible points
+        # case when the errors exceed the possible points
         error_range = range(len(error_list))
         if points < len(error_list):
             error_range = range(points)
@@ -340,7 +340,17 @@ class ListStream:
         pass
 
 
-def getIO(func, input: list[str] = None):
+def get_IO(func, input: list[str] = None):
+    """
+    captures the output of func
+    returns a tuple of:
+      the output as a list, where each line is an element in the list
+      the return value of the function
+      any errors that may have been thrown
+    optional input argument to pass to func as mock input
+    input should be a list of strings, where each element is an input
+    """
+
     error = None
     res = None
     output = ListStream()
