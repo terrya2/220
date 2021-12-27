@@ -4,7 +4,7 @@ from tests.hw4.test_case import TestCase, Road
 from tests.test_framework import *
 
 
-def test_hw():
+def main():
     builder = TestBuilder('traffic', 'traffic.py', 10, 1)
     static_tests = build_static_test_section()
     dynamic_tests = build_dynamic_test_section()
