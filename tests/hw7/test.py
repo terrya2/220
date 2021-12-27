@@ -1,6 +1,6 @@
 import os
 
-from hw7.weighted_average_s import weighted_average
+from hw7.weighted_average import weighted_average
 from tests.hw7 import random_tests
 from tests.test_framework import *
 
