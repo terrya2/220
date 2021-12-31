@@ -6,7 +6,7 @@ from tests.test_framework import TestBuilder
 
 
 def main():
-    builder = TestBuilder('greeting', 'greeting.py', 20, 1)
+    builder = TestBuilder('greeting', 'hw5.py', 20, 1)
     builder.add_to_blacklist({
         'importturtle': "turtle graphics is not allowed for this assignment. please use the author's graphics package.",
         'fromturtle': "turtle graphics is not allowed for this assignment. please use the author's graphics package."

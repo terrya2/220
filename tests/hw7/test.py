@@ -1,12 +1,12 @@
 import os
 
-from hw7.weighted_average import weighted_average
+from hw7 import hw7
 from tests.hw7 import random_tests
 from tests.test_framework import *
 
 
 def main():
-    builder = TestBuilder('Weighted Average', 'weighted_average.py', 15, 1)
+    builder = TestBuilder('Weighted Average', 'hw7.py', 15, 1)
     builder.rc_file = '../../tests/hw6/.pylintrc'
     static_section, static_files = build_static_section()
     dynamic_section, dynamic_files = build_dynamic_section()
@@ -71,7 +71,7 @@ def run_test(data, file_prefix, test_type):
         input_file = f'{test_folder}/{file_prefix}{test_number}'
         output_file = f'{test_folder}/{file_prefix}_output{test_number}'
         files.append((input_file, output_file))
-        weighted_average(input_file, output_file)
+        hw7.main(input_file, output_file)
         expected_lines = test
         actual_lines = []
         inputs = open(f'{test_folder}/{file_prefix}{test_number}', 'r').read()

@@ -1,11 +1,11 @@
-from hw6 import vigenere
+from hw6 import hw6
 from tests.hw6 import random_tests
 from tests.test_framework import *
 
 
 
 def main():
-    builder = TestBuilder('Vigenere', 'vigenere.py', 15, 5)
+    builder = TestBuilder('Vigenere', 'hw6.py', 15, 5)
     builder.rc_file = '../../tests/hw6/.pylintrc'
     builder.add_to_blacklist({
         'enumerate': 'enumerate() function should not be used in this assignment.'
@@ -37,7 +37,7 @@ def run_test(data, test_type):
         message = inp[0]
         key = inp[1]
         expected = inp[2]
-        _, result = run_safe(lambda: vigenere.code(message, key))
+        _, result = run_safe(lambda: hw6.code(message, key))
         section.add_items(Test(message, result, expected, [f'message: {message}', f'key: {key}']))
     return section
 

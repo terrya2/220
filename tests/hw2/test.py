@@ -1,10 +1,10 @@
-from hw2 import interest
+from hw2 import hw2
 from tests.hw2 import random_tests
 from tests.test_framework import *
 
 
 def main():
-    builder = TestBuilder('Interest', 'interest.py', 20, 5)
+    builder = TestBuilder('Interest', 'hw2.py', 20, 5)
     static_section = static_tests('Static')
     dynamic_section = dynamic_tests('Dynamic')
     builder.add_items(static_section, dynamic_section)
@@ -34,7 +34,7 @@ def run_test(data, name) -> Section:
     outputs = []
     for inp in data:
         userIn = inp[0]
-        output, res, error = get_IO(interest.main, userIn)
+        output, res, error = get_IO(hw2.main, userIn)
         outputs.append(output)
 
     for index, actual in enumerate(outputs):

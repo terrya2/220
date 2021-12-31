@@ -1,10 +1,10 @@
-from hw3 import mean
+from hw3 import hw3
 from tests.hw3 import random_tests
 from tests.test_framework import *
 
 
 def main():
-    outline = TestBuilder('mean', 'mean.py', 12, 2)
+    outline = TestBuilder('mean', 'hw3.py', 12, 2)
     outline.rc_file = '../../tests/hw3/.pylintrc'
     outline.add_to_blacklist({
         'importstatistics': 'statistics library not allowed - please write your program to calculate the averages and do not rely on outside libraries to do so for you.',
@@ -39,7 +39,7 @@ def run_test(data, test_type):
     outputs = []
     for inp in data:
         userIn = inp[0]
-        output, res, error = get_IO(mean.main, userIn)
+        output, res, error = get_IO(hw3.main, userIn)
         output = output[-3:]  # get the last 3 outputs
         outputs.append({'rms_average': float(output[0]), 'harmonic_mean': float(output[1]),
                         'geometric_mean': float(output[2]), 'data': userIn})

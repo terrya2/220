@@ -1,10 +1,10 @@
-from hw1 import hello
+from hw1 import hw1
 from tests.test_framework import *
 
 
 def main():
-    builder = TestBuilder("Hello World!", 'hello.py', linter_points=20, default_test_points=70)
-    output, result, error = get_IO(hello.main)
+    builder = TestBuilder("Hello World!", 'hw1.py', linter_points=20, default_test_points=70)
+    output, result, error = get_IO(hw1.main)
     expected = "hello, world!"
     if error:
         test = Test('print hello, world!', f'error: {error}', expected)

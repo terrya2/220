@@ -1,11 +1,11 @@
-from hw4 import traffic
+from hw4 import hw4
 from tests.hw4 import random_tests
 from tests.hw4.test_case import TestCase, Road
 from tests.test_framework import *
 
 
 def main():
-    builder = TestBuilder('traffic', 'traffic.py', 10, 1)
+    builder = TestBuilder('traffic', 'hw4.py', 10, 1)
     static_tests = build_static_test_section()
     dynamic_tests = build_dynamic_test_section()
     builder.add_items(static_tests, dynamic_tests)
@@ -34,7 +34,7 @@ def run_test(test_cases: list[TestCase], test_type):
     # get all the outputs for each test [[test 1 outputs], [test 2 outputs], ...]
     for test_case in test_cases:
         user_in = test_case.get_user_input()
-        output, result, error = get_IO(traffic.main, user_in)
+        output, result, error = get_IO(hw4.main, user_in)
         if not error:
             test_case.set_actual_values(output)
         else:
