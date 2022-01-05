@@ -1,78 +1,85 @@
-from hw3 import hw3
-from tests.hw3 import random_tests
+import functools
+import random
+import statistics
+
+import hw3
 from tests.test_framework import *
+from random import randrange
 
 
 def main():
-    outline = TestBuilder('mean', 'hw3.py', 12, 2)
-    outline.rc_file = '../../tests/hw3/.pylintrc'
-    outline.add_to_blacklist({
-        'importstatistics': 'statistics library not allowed - please write your program to calculate the averages and do not rely on outside libraries to do so for you.',
-        'fromstatistics': 'statistics library not allowed - please write your program to calculate the averages and do not rely on outside libraries to do so for you.'
-    })
-    static_tests = static_test_builder()
-    dynamic_tests = dynamic_test_builder()
-    outline.add_items(static_tests, dynamic_tests)
-    outline.run()
+    builder = TestBuilder("hw 3", 'hw3.py', linter_points=20, default_test_points=2)
+    builder.add_items(
+        build_IO_section('average', [('1', '10')], ["10.0"], build_average_tests(9), hw3.average))
+    builder.add_items(
+        build_IO_section('tip_jar', [("1", "2.25", "3.50", "4.75", "5.25")], ["16.75"], build_tip_jar_tests(9),
+                         hw3.tip_jar))
+    builder.add_items(
+        build_IO_section('newton', [("4", "2")], ["2.05"], build_newton_tests(9), hw3.newton))
+    builder.add_items(
+        build_IO_section('sequence', [["5"]], [["1", "1", "3", "3", "5"]], build_sequence_tests(9), hw3.sequence,
+                         test_all_output=True))
+    builder.add_items(
+        build_IO_section('pi', [("3")], ["3.5555555555555554"], build_pi_tests(9), hw3.pi))
+    builder.run()
 
 
-def static_test_builder():
-    inputs = [
-        (['4', '10', '5', '2', '5'], {'rms_average': 6.205, 'harmonic_mean': 4.0, 'geometric_mean': 4.729}),
-        (['1', '1'], {'rms_average': 1.0, 'harmonic_mean': 1.0, 'geometric_mean': 1.0}),
-        (['10', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
-         {'rms_average': 6.205, 'harmonic_mean': 3.414, 'geometric_mean': 4.529}),
-        (['5', '5', '5', '5', '5', '5'], {'rms_average': 5.0, 'harmonic_mean': 5.0, 'geometric_mean': 5.0})
-    ]
-    return run_test(inputs, 'static tests')
+def build_pi_tests(n):
+    res = []
+    for i in range(n):
+        terms = randrange(0, 1000)
+        n, nums = 2, [2]
+        d, dens = 1, [1]
+        for i in range(terms - 1):
+            if i % 2 == 1:
+                n += 2
+            else:
+                d += 2
+            nums.append(n)
+            dens.append(d)
+        acc = 1
+        for i, num in enumerate(nums):
+            acc *= num / dens[i]
+        res.append({'test': [str(terms)], 'expected': str(acc * 2)})
+    return res
 
 
-def dynamic_test_builder():
-    data = random_tests.create(9)
-    input = data['data']
-    answers = data['answers']
-    test_data = convert_test_data(input, answers)
-    return run_test(test_data, 'dynamic tests')
+def build_average_tests(n):
+    res = []
+    for i in range(n):
+        num = randrange(1, 20)
+        ges = [randrange(1, 100) for _ in range(num)]
+        res.append({'test': [str(x) for x in [num] + ges], 'expected': str(float(statistics.mean(ges)))})
+    return res
 
 
-def run_test(data, test_type):
-    outputs = []
-    for inp in data:
-        userIn = inp[0]
-        output, res, error = get_IO(hw3.main, userIn)
-        output = output[-3:]  # get the last 3 outputs
-        outputs.append({'rms_average': float(output[0]), 'harmonic_mean': float(output[1]),
-                        'geometric_mean': float(output[2]), 'data': userIn})
-
-    section = Section(test_type)
-    for index, actual in enumerate(outputs):
-        expected = data[index][1]
-        test_results = [
-            {'name': 'rms_average', 'actual': actual['rms_average'], 'expected': expected['rms_average']},
-            {'name': 'harmonic_mean', 'actual': actual['harmonic_mean'],
-             'expected': expected['harmonic_mean']},
-            {'name': 'geometric_mean', 'actual': actual['geometric_mean'],
-             'expected': expected['geometric_mean']},
-        ]
-        sub_section = Section(f'test {index + 1}', group_data=[" ".join(map(str, actual['data']))])
-        for i in test_results:
-            sub_section.add_items(Test(i['name'], i['actual'], i['expected']))
-        section.add_items(sub_section)
-    return section
+def build_tip_jar_tests(n):
+    res = []
+    for i in range(n):
+        tips = [round(random.uniform(0.01, 100), 2) for _ in range(5)]
+        res.append({"test": [str(x) for x in tips], "expected": str(sum(tips))})
+    return res
 
 
-def convert_test_data(data, response):
-    inputs = []
-    for index, test in enumerate(response):
-        input_values = list(map(str, data[index]))
-        input_values.insert(0, str(len(data[index])))
-        output_values = {
-            'rms_average': test['rmsAvg'],
-            'harmonic_mean': test['harmonicMean'],
-            'geometric_mean': test['geometricMean']
-        }
-        inputs.append((input_values, output_values))
-    return inputs
+def build_newton_tests(n):
+    res = []
+    for i in range(n):
+        x = randrange(1, 100)
+        l = randrange(0, 5)
+        a = functools.reduce(lambda acc, n: (acc + x / acc) / 2, range(l), x)
+        res.append({'test': (str(x), str(l)), 'expected': str(a)})
+    return res
+
+
+def build_sequence_tests(n):
+    res = []
+    for i in range(n):
+        terms = randrange(0, 20)
+        all = list(range(1, terms + 1)) * 2
+        all.sort()
+        vals = [x for x in all if x % 2 != 0][:terms]
+        res.append({'test': [str(terms)], 'expected': [str(x) for x in vals]})
+    return res
 
 
 if __name__ == '__main__':

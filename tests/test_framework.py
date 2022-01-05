@@ -1,3 +1,4 @@
+import re
 import sys
 from io import StringIO
 from types import LambdaType
@@ -22,7 +23,7 @@ class TestItem:
 
 class Test(TestItem):
     def __init__(self, name, actual=None, expected=None, data=None, points=None, fail_fast=False,
-                 show_actual_expected=True, exception_message=None):
+                 show_actual_expected=True, exception_message=None, comp_func=None):
         """
         A Test in a Test Suite.
 
@@ -33,6 +34,9 @@ class Test(TestItem):
         :param points: the amount of points the test is worth
         :param fail_fast: exit the test suit if the test fails
         :param show_actual_expected: show the actual and expected values if a test fails
+        :param exception_message: a message to be displayed if an exception is thrown
+        :param comp_func: a function used to check if the test passes or fails
+                          should take 2 parameters (actual, expected) and return a bool representing pass/fail
         """
         super().__init__(name, points)
         self.actual = actual
@@ -41,6 +45,7 @@ class Test(TestItem):
         self.fail_fast = fail_fast
         self.show_actual_expected = show_actual_expected
         self.exception_message = exception_message
+        self.comp_func = comp_func
 
     def passed(self):
         self.earned_points += self.default_points
@@ -64,6 +69,8 @@ class Test(TestItem):
             if self.exception_message:
                 print(f'{tabs}\t{self.exception_message}')
         else:
+            if self.exception_message:
+                print(f'{tabs}\t{self.exception_message}')
             if self.show_actual_expected:
                 print(f'{tabs}\tactual: {result} | expected: {self.expected}')
             if self.data:
@@ -77,7 +84,11 @@ class Test(TestItem):
             result = self.actual
             if isinstance(self.actual, LambdaType):
                 result = self.actual()
-            if result == self.expected:
+            if self.comp_func:
+                outcome = self.comp_func(result, self.expected)
+            else:
+                outcome = result == self.expected
+            if outcome:
                 self.passed()
             else:
                 self.failed(result)
@@ -321,6 +332,14 @@ def create_blacklist_test():
 
 
 def gen(lst):
+    """
+    used for looping through test input and results
+    this will lazily get the value of lst and feed it to a lazily called function
+    (like a lambda)
+    result is used with next method
+    ex: user_in = gen([1,2,3])
+        element = next(user_in)
+    """
     i = 0
     while True:
         yield lst[i % len(lst)]
@@ -366,7 +385,65 @@ def get_IO(func, input: list[str] = None):
         error = 'unexpected input'
     except EOFError:
         error = 'input error.'
+    except Exception as e:
+        error = e
     sys.stdout = sys.__stdout__  # resets stdout
     sys.stdin = sys.__stdin__
     # output = output.getvalue().splitlines()
     return (output, res, error)
+
+
+def IO_Test(test: Test, input=None, expected_return=None):
+    func = test.actual
+    expected = test.expected
+    output, result, error = get_IO(func, input)
+    if error:
+        return Test(test.name, f'error: {error}', expected)
+
+
+def get_all_numbers_in_string(line):
+    """
+    given a string (like IO output from a program)
+    this will collect all the numbers in the string and return them as a list
+    """
+    # \d+ matched one or more digit
+    # \. escapes the . so it is treated like a decimal
+    # | logical or
+    # so this gets floats | ints
+    return re.findall("\d+\.\d+|\d+", line)
+
+
+def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False):
+    """
+    :param name: the name of the test
+    :param tests: sequence of test inputs
+    :expected: sequence of expected outputs
+    :dynamic_tests: dict of additional tests
+        {'test':[more test inputs, ...], 'expected':[more expected outputs, ...]}
+    :test_func: the function being tested
+    :test_all_ouptus: compares expected list to entire output list
+    """
+    section = Section(name)
+    for test in dynamic_tests:
+        tests.append(test['test'])
+        expected.append(test['expected'])
+    results = []
+    for test in tests:
+        results.append(get_IO(test_func, test))
+    actual_results = gen(results)
+    for i, ex in enumerate(expected):
+        output, res, error = next(actual_results)
+        test_name = f'{name} {i + 1}'
+        if error:
+            test = Test(test_name, None, ex, exception_message=error, data=[f'inputs: {tests[i]}'])
+        else:
+            full_output = " ".join(output)
+            output_numbers = get_all_numbers_in_string(full_output)
+            if not test_all_output:
+                output_numbers = output_numbers[0]
+            try:
+                test = Test(test_name, output_numbers, ex, data=[f'inputs: {tests[i]}'])
+            except:
+                test = Test(test_name, f'error: incorrect output', ex, data=[f'inputs: {tests[i]}'])
+        section.add_items(test)
+    return section
