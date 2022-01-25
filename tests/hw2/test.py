@@ -7,7 +7,9 @@ def main():
     builder = TestBuilder("hw 2", 'hw2.py', linter_points=20, default_test_points=2)
     builder.add_to_blacklist({
         'if (?!__name__).*:': 'if statements not allowed for this assignment. please remove it to continue',
-        'while.*:': 'while loops not allowed for this assignment. please remove it to continue'
+        'while.*:': 'while loops not allowed for this assignment. please remove it to continue',
+        'pow.*\(.*\d\)': 'cannot use pow function for this assignment!',
+        '\*\*': 'cannot use exponent operator for this assignment!'
     })
     builder.add_items(
         build_section('sum_of_threes', [["15"]], ["45"], build_sum_of_threes_tests(9), hw2.sum_of_threes))
