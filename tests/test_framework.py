@@ -147,7 +147,8 @@ class Section(TestItem):
             print(f'{tabs}\tdata:')
             for line in self.group_data:
                 print(f'{tabs}\t\t{line}')
-        grade = score_to_letter(self.earned_points * 100 / self.total_points) if self.letter_grades else f'{self.earned_points}/{self.total_points}'
+        grade = score_to_letter(
+            self.earned_points * 100 / self.total_points) if self.letter_grades else f'{self.earned_points}/{self.total_points}'
         end_label = f' {self.name} end: {grade} '
         print('{0}{1:-^70}'.format(tabs, end_label))
 
@@ -182,10 +183,11 @@ class TestBuilder:
         self.default_test_points = default_test_points
         self.name = name
         self.blacklist = {
-            'importos': 'no need for the os module. please remove it to continue.',
-            'fromos': 'no need for the os module. please remove it to continue.',
-            'importpathlib': 'no need for the pathlib module. please remove it to continue.',
-            'frompathlib': 'no need for the pathlib module. please remove it to continue.',
+            'import.*os': 'no need for the os module. please remove it to continue.',
+            'from.*os': 'no need for the os module. please remove it to continue.',
+            'import.*pathlib': 'no need for the pathlib module. please remove it to continue.',
+            'from.*pathlib': 'no need for the pathlib module. please remove it to continue.',
+            '\[.*for.*in.*\]': 'list comprehension is not allowed. please remove it to continue'
         }
         self.file_name = file_name
         self.rc_file = '../../.pylintrc'
@@ -194,9 +196,6 @@ class TestBuilder:
         self.lint_func = create_lint_test()
         self.lint_tests = []
         self.letter_grades = True if 'letter_grades' not in kwargs else kwargs['letter_grades']
-
-    def create_blacklist_tests(self):
-        pass
 
     def add_to_blacklist(self, items: dict):
         """
@@ -241,7 +240,8 @@ class TestBuilder:
             self.total_points += item.total_points
             self.earned_points += item.earned_points
         print()
-        grade = score_to_letter(self.earned_points * 100 / self.total_points) if self.letter_grades else f'{self.earned_points}/{self.total_points}'
+        grade = score_to_letter(
+            self.earned_points * 100 / self.total_points) if self.letter_grades else f'{self.earned_points}/{self.total_points}'
         test_outro = f' Test {self.name} complete: {grade} '
         print('{0}{1:=^80}'.format(tabs, test_outro))
 
@@ -280,7 +280,8 @@ class TestSuit:
             self.total_points += item.total_points
             self.earned_points += item.earned_points
         print()
-        grade = score_to_letter(self.earned_points * 100 / self.total_points) if self.letter_grades else f'{self.earned_points}/{self.total_points}'
+        grade = score_to_letter(
+            self.earned_points * 100 / self.total_points) if self.letter_grades else f'{self.earned_points}/{self.total_points}'
         test_outro = f' Test {self.name} complete: {grade} '
         print('{0:=^80}'.format(test_outro))
 
@@ -351,11 +352,12 @@ def create_blacklist_test():
         tests = []
         with open(test_file, 'r') as file:
             for index, line in enumerate(file):
-                found_items = list(
-                    filter(lambda blacklist_key: blacklist_key in line.replace(' ', '').lower(), blacklist.keys()))
-                for item in found_items:
-                    tests.append(
-                        Test(f'Line {index + 1} - {blacklist[item]}', 0, 1, show_actual_expected=False, points=100))
+                for blacklist_item in blacklist:
+                    res = re.search(blacklist_item, line)
+                    if res:
+                        culprit = res.group()
+                        tests.append(Test(f'Line {index + 1} - {culprit} - {blacklist[blacklist_item]}', 0, 1,
+                                          show_actual_expected=False, points=100))
             try:
                 tests[-1].fail_fast = True
             except IndexError:
