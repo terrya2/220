@@ -8,6 +8,8 @@ def main():
     builder.add_to_blacklist({
         'if (?!__name__).*:': 'if statements not allowed for this assignment. please remove it to continue',
         'while.*:': 'while loops not allowed for this assignment. please remove it to continue',
+        '\[*\]': 'lists are not allowed for this assignment. please remove it to continue',
+        'list': 'lists are not allowed for this assignment. please remove it to continue',
         'pow.*\(.*\d\)': 'cannot use pow function for this assignment!',
         '\*\*': 'cannot use exponent operator for this assignment!'
     })

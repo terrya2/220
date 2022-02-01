@@ -1,3 +1,4 @@
+import random
 import re
 import sys
 from io import StringIO
@@ -430,6 +431,7 @@ def get_IO(func, input: list[str] = None):
     return (output, res, error)
 
 
+# TODO: Remove this
 def IO_Test(test: Test, input=None, expected_return=None):
     func = test.actual
     expected = test.expected
@@ -450,7 +452,7 @@ def get_all_numbers_in_string(line):
     return re.findall("\d+\.\d+|\d+", line)
 
 
-def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False):
+def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False, error_range=None):
     """
     :param name: the name of the test
     :param tests: sequence of test inputs
@@ -459,6 +461,7 @@ def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_o
         {'test':[more test inputs, ...], 'expected':[more expected outputs, ...]}
     :test_func: the function being tested
     :test_all_ouptus: compares expected list to entire output list
+    :error_range: the range a float can be off by while still considered passing
     """
     section = Section(name)
     for test in dynamic_tests:
@@ -468,19 +471,49 @@ def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_o
     for test in tests:
         results.append(get_IO(test_func, test))
     actual_results = gen(results)
+
+    def error_comp_func(actual, expected):
+        return abs(float(actual) - float(expected)) < error_range
+
+    error_function = None
+    if error_range:
+        error_function = error_comp_func
+
     for i, ex in enumerate(expected):
         output, res, error = next(actual_results)
         test_name = f'{name} {i + 1}'
         if error:
             test = Test(test_name, None, ex, exception_message=error, data=[f'inputs: {tests[i]}'])
+        elif len(output) == 0:
+            test = Test(test_name, True, False, exception_message='No output',
+                        data=[f'inputs: {tests[i]}', f'expected: {ex}'], show_actual_expected=False)
         else:
             full_output = " ".join(output)
             output_numbers = get_all_numbers_in_string(full_output)
             if not test_all_output:
                 output_numbers = output_numbers[0]
             try:
-                test = Test(test_name, output_numbers, ex, data=[f'inputs: {tests[i]}'])
+                test = Test(test_name, output_numbers, ex, data=[f'inputs: {tests[i]}'], comp_func=error_function)
             except:
                 test = Test(test_name, f'error: incorrect output', ex, data=[f'inputs: {tests[i]}'])
         section.add_items(test)
     return section
+
+
+def get_random_letter():
+    return random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+
+
+def get_random_string(min=1, max=7):
+    output = ''
+    length = random.randint(min, max)
+    for i in range(length):
+        output += get_random_letter()
+    return output
+
+
+def make_random_sentence(words=5, word_min=1, word_max=7):
+    sentence = []
+    for i in range(words):
+        sentence.append(get_random_string(word_min, word_max))
+    return ' '.join(sentence)

@@ -8,7 +8,9 @@ def main():
     builder = TestBuilder("hw 1", 'hw1.py', linter_points=20, default_test_points=2)
     builder.add_to_blacklist({
         'if (?!__name__).*:': 'if statements not allowed for this assignment. please remove it to continue',
-        'while.*:': 'while loops not allowed for this assignment. please remove it to continue'
+        'while.*:': 'while loops not allowed for this assignment. please remove it to continue',
+        '\[*\]': 'lists are not allowed for this assignment. please remove it to continue',
+        'list': 'lists are not allowed for this assignment. please remove it to continue'
     })
     builder.add_items(
         build_section('calc_rec_area', [("2", "3")], ["6"], build_calc_rec_area_tests(9), hw1.calc_rec_area))
