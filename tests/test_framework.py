@@ -491,9 +491,10 @@ def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_o
         else:
             full_output = " ".join(output)
             output_numbers = get_all_numbers_in_string(full_output)
-            if not test_all_output:
-                output_numbers = output_numbers[0]
             try:
+                if not test_all_output:
+                    output_numbers = output_numbers[0]
+
                 test = Test(test_name, output_numbers, ex, data=[f'inputs: {tests[i]}'],
                             comp_func=comp_func or error_function)
             except:
