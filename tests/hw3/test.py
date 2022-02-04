@@ -26,9 +26,14 @@ def main():
         build_IO_section('sequence', [["5"]], [["1", "1", "3", "3", "5"]], build_sequence_tests(9), hw3.sequence,
                          test_all_output=True))
     builder.add_items(
-        build_IO_section('pi', [("3")], ["3.5555555555555554"], build_pi_tests(9), hw3.pi))
+        build_IO_section('pi', [("3")], [("3.5555555555555554", "3.5555555555555554")], build_pi_tests(9),
+                         hw3.pi, comp_func=pi_tester))
     builder.run()
 
+def pi_tester(acc, exp):
+    option1 = exp[0]
+    option2 = exp[1]
+    return acc == option1 or acc == option2
 
 def build_pi_tests(n):
     res = []
@@ -44,9 +49,12 @@ def build_pi_tests(n):
             nums.append(n)
             dens.append(d)
         acc = 1
+        numm, denn = 1, 1
         for i, num in enumerate(nums):
             acc *= num / dens[i]
-        res.append({'test': [str(terms)], 'expected': str(acc * 2)})
+            numm *= num
+            denn *= dens[i]
+        res.append({'test': [str(terms)], 'expected': (str(acc * 2), (str(numm / denn * 2)))})
     return res
 
 

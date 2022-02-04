@@ -452,7 +452,8 @@ def get_all_numbers_in_string(line):
     return re.findall("\d+\.\d+|\d+", line)
 
 
-def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False, error_range=None):
+def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False, error_range=None,
+                     comp_func=None):
     """
     :param name: the name of the test
     :param tests: sequence of test inputs
@@ -493,7 +494,8 @@ def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_o
             if not test_all_output:
                 output_numbers = output_numbers[0]
             try:
-                test = Test(test_name, output_numbers, ex, data=[f'inputs: {tests[i]}'], comp_func=error_function)
+                test = Test(test_name, output_numbers, ex, data=[f'inputs: {tests[i]}'],
+                            comp_func=comp_func or error_function)
             except:
                 test = Test(test_name, f'error: incorrect output', ex, data=[f'inputs: {tests[i]}'])
         section.add_items(test)
