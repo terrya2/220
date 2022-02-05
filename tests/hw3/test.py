@@ -16,7 +16,8 @@ def main():
         'list': 'lists are not allowed for this assignment. please remove it to continue'
     })
     builder.add_items(
-        build_IO_section('average', [('1', '10')], ["10.0"], build_average_tests(9), hw3.average))
+        build_IO_section('average', [('1', '10')], ["10.0"], build_average_tests(9), hw3.average,
+                         error_range=0.0000000000001))
     builder.add_items(
         build_IO_section('tip_jar', [("1", "2.25", "3.50", "4.75", "5.25")], ["16.75"], build_tip_jar_tests(9),
                          hw3.tip_jar))
