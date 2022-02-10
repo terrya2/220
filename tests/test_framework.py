@@ -452,7 +452,8 @@ def get_all_numbers_in_string(line):
     return re.findall("\d+\.\d+|\d+", line)
 
 
-def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False, error_range=None):
+def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False, error_range=None,
+                     comp_func=None):
     """
     :param name: the name of the test
     :param tests: sequence of test inputs
@@ -490,10 +491,49 @@ def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_o
         else:
             full_output = " ".join(output)
             output_numbers = get_all_numbers_in_string(full_output)
-            if not test_all_output:
-                output_numbers = output_numbers[0]
             try:
-                test = Test(test_name, output_numbers, ex, data=[f'inputs: {tests[i]}'], comp_func=error_function)
+                if not test_all_output:
+                    output_numbers = output_numbers[0]
+
+                test = Test(test_name, output_numbers, ex, data=[f'inputs: {tests[i]}'],
+                            comp_func=comp_func or error_function)
+            except:
+                test = Test(test_name, f'error: incorrect output', ex, data=[f'inputs: {tests[i]}'])
+        section.add_items(test)
+    return section
+
+
+def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False, comp_func=None):
+    """
+    :param name: the name of the test
+    :param tests: sequence of test inputs
+    :expected: sequence of expected outputs
+    :dynamic_tests: dict of additional tests
+        {'test':[more test inputs, ...], 'expected':[more expected outputs, ...]}
+    :test_func: the function being tested
+    :test_all_ouptus: compares expected list to entire output list
+    """
+    section = Section(name)
+    for test in dynamic_tests:
+        tests.append(test['test'])
+        expected.append(test['expected'])
+    results = []
+    for test in tests:
+        results.append(get_IO(test_func, test))
+    actual_results = gen(results)
+
+    for i, ex in enumerate(expected):
+        output, res, error = next(actual_results)
+        test_name = f'{name} {i + 1}'
+        if error:
+            test = Test(test_name, None, ex, exception_message=error, data=[f'inputs: {tests[i]}'])
+        elif len(output) == 0:
+            test = Test(test_name, True, False, exception_message='No output',
+                        data=[f'inputs: {tests[i]}', f'expected: {ex}'], show_actual_expected=False)
+        else:
+            final_output = output[-1]
+            try:
+                test = Test(test_name, final_output, ex, data=[f'inputs: {tests[i]}'], comp_func=comp_func)
             except:
                 test = Test(test_name, f'error: incorrect output', ex, data=[f'inputs: {tests[i]}'])
         section.add_items(test)
