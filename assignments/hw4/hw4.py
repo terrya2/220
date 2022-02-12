@@ -1,64 +1,105 @@
 """
-Name: <your name goes here – first and last>
-<ProgramName>.py
-
-Problem: <Brief, one or two sentence description of the problem that this program solves, in your own words.>
-
-Certification of Authenticity:
-<include one of the following>
+Autumn Terry
+hw4.py
+Creating programs that create graphics through the use of previously supplied packages.
 I certify that this assignment is entirely my own work.
-I certify that this assignment is my own work, but I discussed it with: <Name(s)>
 """
 
 from graphics import *
 
 
 def squares():
-    # Creates a graphical window
     width = 400
     height = 400
     win = GraphWin("Clicks", width, height)
 
-    # number of times user can move circle
     num_clicks = 5
 
-    # create a space to instruct user
     inst_pt = Point(width / 2, height - 10)
-    instructions = Text(inst_pt, "Click to move circle")
+    instructions = Text(inst_pt, "Click to move square")
     instructions.draw(win)
 
-    # builds a circle
-    shape = Circle(Point(50, 50), 20)
-    shape.setOutline("red")
-    shape.setFill("red")
-    shape.draw(win)
+    rect = Rectangle(Point(50, 0), Point(0, 50))
+    rect.setOutline("red")
+    rect.setFill("red")
+    rect.draw(win)
 
-    # allows the user to click multiple times to move the circle
     for i in range(num_clicks):
         click = win.getMouse()
-        center = shape.getCenter()  # center of circle
+        center = rect.getCenter()
 
-        # move amount is distance from center of circle to the
-        # point where the user clicked
-        change_x = click.getX() - center.getX()
-        change_y = click.getY() - center.getY()
-        shape.move(change_x, change_y)
+    rect_new = rect.clone()
+    change_x = click.getX() - center.getX()
+    change_y = click.getY() - center.getY()
+    rect_new.move(change_x, change_y)
+    rect_new.draw(win)
 
+    instructions.setText("Click again to close")
     win.getMouse()
     win.close()
 
+    squares()
 
 def rectangle():
-    pass
+    width = 400
+    height = 400
+    win = GraphWin("Build a Rectangle", width, height)
+
+    p1 = win.getMouse()
+    p1.draw(win)
+    p2 = win.getMouse()
+    p2.draw(win)
+
+    rectangle = Rectangle(p1, p2)
+    rectangle.draw(win)
+
+    rect_width = p1
+    rect_length = p2
+    perimeter = 2 * (rect_length + rect_width)
+    area = p1 * p2
+    perimeter.setText(perimeter)
+    area.setText(area)
+
+    instructions = Text("Click again to close")
+    instructions.setText("Click again to close")
+    win.getMouse()
+    win.close()
+
+    rectangle()
 
 
 def circle():
-    pass
+    width = 400
+    height = 400
+    win = GraphWin("Draw a circle", width, height)
 
+    center = win.getMouse()
+    center.draw(win)
+    circum = win.getMouse()
+    circum.draw(win)
+
+    xvar = circum.getX() - center.getX()
+    yvar = circum.getY() - center.getY()
+    radius = ((xvar ** 2) + (yvar ** 2)) ** (1 / 2)
+
+    circle = Circle(center, radius)
+    circle.draw(win)
+
+    instructions = Text("Click again to close")
+    instructions.setText("Click again to close")
+    win.getMouse()
+    win.close()
+
+    circle()
 
 def pi2():
-    pass
+    num_terms = eval(input("enter number of terms to sum:"))
+    total = 0
+    for i in range(1, num_terms):
 
+        print("pi approximation:")
+        print("accuracy: ")
 
+    pi2()
 if __name__ == '__main__':
     pass
