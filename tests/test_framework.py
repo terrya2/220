@@ -391,7 +391,7 @@ class ListStream:
     def write(self, s: str):
         if s == '\n':
             return
-        self.data.append(s)
+        self.data += s.split('\n')
 
     def flush(self, *args):
         pass
