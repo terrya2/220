@@ -34,7 +34,7 @@ def build_name_reverse_tests(n):
             tests.append(
                 Test(f'{test_name} {i + 1}', True, False, exception_message='No output', show_actual_expected=False))
         else:
-            actual = output[-1]
+            actual = ''.join(output[1:])
             expected = f'{last_name}, {first_name}'
             tests.append(Test(f'{test_name} {i + 1}', actual, expected, data=[f"{first_name} {last_name}"]))
     section = Section(test_name)
