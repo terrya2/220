@@ -36,12 +36,16 @@ def build_cash_converter_tests(n):
     return tests
 
 
-def build_encode_tests(n):
+def build_encode_tests(n, shift=None):
+    random_shift = False
+    if not shift:
+        random_shift = True
     tests = []
     for i in range(n):
         words_in_sentence = random.randint(1, 7)
         sentence = make_random_sentence(words_in_sentence)
-        shift = random.randint(0, 100)
+        if random_shift:
+            shift = random.randint(0, 100)
         expected = ''.join([chr(ord(l) + shift) for l in sentence])
         tests.append({'test': [sentence, str(shift)], 'expected': expected})
     return tests
@@ -137,13 +141,21 @@ def build_sum_n_cubes_tests(n):
     return section
 
 
-def build_encode_better_tests(n):
+def build_encode_better_tests(n, sentence=None, key=None):
+    use_random_key = False
+    use_random_sentence = False
+    if not key:
+        use_random_key = True
+    if not sentence:
+        use_random_sentence = True
     tests = []
     for i in range(n):
         words_in_sentence = random.randint(1, 7)
-        sentence = make_random_sentence(words_in_sentence)
+        if use_random_sentence:
+            sentence = make_random_sentence(words_in_sentence)
         sentence_nums = [ord(l) - ord('A') for l in sentence]
-        key = get_random_string()
+        if use_random_key:
+            key = get_random_string()
         test_key = key * len(sentence)
         key_nums = [ord(k) - ord('A') for k in test_key]
         new_numbers = [l + key_nums[i] for i, l in enumerate(sentence_nums)]
