@@ -214,7 +214,7 @@ def build_pig_latin_tests(n):
             tests.append(
                 Test(f'{test_name} {i + 1}', True, False, exception_message='No output', show_actual_expected=False))
         else:
-            full_output = output[-1]
+            full_output = ''.join(output[1:])
             tests.append(Test(f'{test_name} {i + 1}', full_output, pig_sentence.lower(), data=[sentence]))
 
     section = Section(test_name)
