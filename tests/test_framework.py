@@ -503,7 +503,7 @@ def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_o
     return section
 
 
-def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False, comp_func=None):
+def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, num_inputs=1, test_all_output=False, comp_func=None):
     """
     :param name: the name of the test
     :param tests: sequence of test inputs
@@ -511,6 +511,7 @@ def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, tes
     :dynamic_tests: dict of additional tests
         {'test':[more test inputs, ...], 'expected':[more expected outputs, ...]}
     :test_func: the function being tested
+    :num_inputs: how many inputs to ignore in the output
     :test_all_ouptus: compares expected list to entire output list
     """
     section = Section(name)
@@ -531,7 +532,7 @@ def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, tes
             test = Test(test_name, True, False, exception_message='No output',
                         data=[f'inputs: {tests[i]}', f'expected: {ex}'], show_actual_expected=False)
         else:
-            final_output = ''.join(output[2:])
+            final_output = ''.join(output[num_inputs:])
             try:
                 test = Test(test_name, final_output, ex, data=[f'inputs: {tests[i]}'], comp_func=comp_func)
             except:

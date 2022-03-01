@@ -14,14 +14,14 @@ def main():
         build_IO_section('cash_converter', [["7"]], ["7.00"], build_cash_converter_tests(9), hw6.cash_converter))
     builder.add_items(
         build_IO_string_section('encode', [["The time has come, the Walrus said", "7"]],
-                                ["[ol'{ptl'ohz'jvtl3'{ol'^hsy|z'zhpk"], build_encode_tests(9), hw6.encode))
+                                ["[ol'{ptl'ohz'jvtl3'{ol'^hsy|z'zhpk"], build_encode_tests(9), hw6.encode, 2))
     builder.add_items(build_sphere_area_tests(10))
     builder.add_items(build_sphere_volume_tests(10))
     builder.add_items(build_sum_n_tests(10))
     builder.add_items(build_sum_n_cubes_tests(10))
     builder.add_items(
         build_IO_string_section('encode_better', [["dolphin", "ace"]],
-                                ["JWVVPST"], build_encode_better_tests(9), hw6.encode_better))
+                                ["JWVVPST"], build_encode_better_tests(9), hw6.encode_better, 2))
     builder.run()
 
 
