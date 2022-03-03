@@ -188,7 +188,9 @@ class TestBuilder:
             'from.*os': 'no need for the os module. please remove it to continue.',
             'import.*pathlib': 'no need for the pathlib module. please remove it to continue.',
             'from.*pathlib': 'no need for the pathlib module. please remove it to continue.',
-            '\[.*for.*in.*\]': 'list comprehension is not allowed. please remove it to continue'
+            '\[.*for.*in.*\]': 'list comprehension is not allowed. please remove it to continue',
+            'with.*open': 'please open files using the techniques discussed in class',
+            '\..*write.*(.*)': 'please write to files using the techniques discussed in class'
         }
         self.file_name = file_name
         self.rc_file = '../../.pylintrc'
