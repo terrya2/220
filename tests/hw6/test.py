@@ -43,7 +43,10 @@ def build_encode_tests(n, shift=None):
     tests = []
     for i in range(n):
         words_in_sentence = random.randint(1, 7)
-        sentence = make_random_sentence(words_in_sentence)
+        s = make_random_sentence(words_in_sentence)
+        sentence = ''
+        for letter in s:
+            sentence += chr(ord(letter) - 32)
         if random_shift:
             shift = random.randint(0, 100)
         expected = ''.join([chr(ord(l) + shift) for l in sentence])

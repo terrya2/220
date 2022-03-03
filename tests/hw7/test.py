@@ -85,9 +85,19 @@ def build_send_safe_message_tests(num):
     test_name = 'send_safe_message'
     tests = []
     file_names = [(f'{test_name}_{i}_input.txt', f'{test_name}_{i}_expected.txt') for i in range(1, num + 1)]
-    keys = [random.randint(0, 100) for _ in range(len(file_names))]
-    for i, files in enumerate(file_names):
-        create_test_files([files], send_safe_message_generator(keys[i]))
+    keys = [random.randint(0, 25) for _ in range(len(file_names))]
+    i = 0
+    attempts = 0
+    while i < len(file_names):
+        attempts += 1
+        files = file_names[i]
+        try:
+            create_test_files([files], send_safe_message_generator(keys[i]))
+            i += 1
+        except Exception as e:
+            if attempts > 10000:
+                print('an error occurred, please try running the tests again')
+                sys.exit()
 
     for i in range(1, num + 1):
         expected = open(HW_DIR / f'{test_name}_{i}_expected.txt', 'r').read()
