@@ -161,7 +161,7 @@ def build_check_sum_tests(num):
     for i, res in enumerate(inout):
         inp, expected = res
         tests.append(
-            Test(f'{test_name} {i + 1}', lambda: hw7.calc_check_sum(next(input_gen)), expected))
+            Test(f'{test_name} {i + 1}', lambda: hw7.calc_check_sum(next(input_gen)), expected, data=[next(input_gen)]))
     section = Section(test_name)
     section.add_items(*tests)
     return section
