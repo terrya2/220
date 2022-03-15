@@ -15,7 +15,59 @@ def main():
     builder.add_items(build_already_guessed_test(10))
     builder.add_items(build_make_hidden_secret_test(10))
     builder.add_items(build_won_test(10))
+    builder.add_items(build_playing_test())
     builder.run()
+
+
+def build_playing_test():
+    test_name = 'play_command_line'
+    section = Section(test_name)
+    # secret word, guesses, outputs, is winner
+    tests = [
+        ('hello', ['h', 'e', 'l', 'o'], ['_ _ _ _ _', 'h _ _ _ _', 'h e _ _ _', 'h e l l _', 'hello'],
+         True),
+        ('walrus', ['w', 'a', 'e', 'o', 't', 'l', 's', 'u', 'r'],
+         ['_ _ _ _ _ _', 'w _ _ _ _ _', 'w a _ _ _ _', 'w a _ _ _ _', 'w a _ _ _ _', 'w a _ _ _ _', 'w a l _ _ _',
+          'w a l _ _ s', 'w a l _ u s', 'walrus'],
+         True),
+        ('abide', ['a', 'e', 'i', 'o', 'u', 'y', 's', 'u', 'v', 'r'],
+         ['_ _ _ _ _', 'a _ _ _ _', 'a _ _ _ e', 'a _ i _ e', 'a _ i _ e', 'a _ i _ e', 'a _ i _ e', 'a _ i _ e',
+          'a _ i _ e', 'a _ i _ e'],
+         False),
+        ('register', ['r', 'e', 'e', 'n', 'u', 'y', 's', 'u', 'v', 'r', 'j', 'k'],
+         ['_ _ _ _ _ _ _ _', 'r _ _ _ _ _ _ r', 'r e _ _ _ _ e r', 'r e _ _ _ _ e r', 'r e _ _ _ _ e r',
+          'r e _ _ _ _ e r', 'r e _ _ _ _ e r', 'r e _ _ s _ e r', 'r e _ _ s _ e r', 'r e _ _ s _ e r',
+          'r e _ _ s _ e r', 'r e _ _ s _ e r'],
+         False),
+        ('lebowski', ['r', 's', 't', 'l', 'n', 'e', 'b', 'j', 'k', 'v', 'o', 'w', 'i'],
+         ['_ _ _ _ _ _ _ _', '_ _ _ _ _ _ _ _', '_ _ _ _ _ s _ _', '_ _ _ _ _ s _ _', 'l _ _ _ _ s _ _',
+          'l _ _ _ _ s _ _', 'l e _ _ _ s _ _', 'l e b _ _ s _ _', 'l e b _ _ s _ _', 'l e b _ _ s k _',
+          'l e b _ _ s k _', 'l e b o _ s k _', 'l e b o w s k _', 'lebowski'],
+         True),
+    ]
+    for i, test in enumerate(tests):
+        word = test[0]
+        input = test[1]
+        expected_progress = test[2]
+        did_win = test[3]
+        output, returned, errors = get_IO(lambda: hw9.play_command_line(word), input)
+        if errors:
+            section.add_items(
+                Test(f'{test_name}_{i + 1}', True, False, show_actual_expected=False, exception_message=[errors],
+                     points=2))
+        else:
+            hidden_progress = [x for x in output if x.find('_') >= 0 or x.replace(' ', '') == word]
+            if did_win:
+                last: str = hidden_progress[-1]
+                hidden_progress = hidden_progress[:-1]
+                hidden_progress.append(last.replace(' ', ''))
+            section.add_items(Test(f'{test_name}_progress_{i + 1}', hidden_progress, expected_progress,
+                                   data=[f'guessed letters: {input}', f'expected progression: {expected_progress}',
+                                         f'actual progression: {hidden_progress}'], show_actual_expected=False))
+            section.add_items(Test(f'{test_name}_winner_{i + 1}', ''.join(output).find('winner') >= 0, did_win,
+                                   data=[f'guessed letters: {input}', f'expected progression: {expected_progress}',
+                                         f'actual progression: {hidden_progress}']))
+    return section
 
 
 def build_won_test(n):
