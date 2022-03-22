@@ -53,11 +53,15 @@ def build_playing_test():
         output, returned, errors = get_IO(lambda: hw9.play_command_line(word), input)
         if errors:
             section.add_items(
-                Test(f'{test_name}_{i + 1}', True, False, show_actual_expected=False, exception_message=[errors],
+                Test(f'{test_name}_{i + 1}', True, False, show_actual_expected=False, exception_message=errors,
+                     points=2))
+        elif not output:
+            section.add_items(
+                Test(f'{test_name}_{i + 1}', True, False, show_actual_expected=False, exception_message='No output',
                      points=2))
         else:
             hidden_progress = [x for x in output if x.find('_') >= 0 or x.replace(' ', '') == word]
-            if did_win:
+            if did_win and hidden_progress:
                 last: str = hidden_progress[-1]
                 hidden_progress = hidden_progress[:-1]
                 hidden_progress.append(last.replace(' ', ''))
@@ -66,7 +70,7 @@ def build_playing_test():
                                          f'actual progression: {hidden_progress}'], show_actual_expected=False))
             section.add_items(Test(f'{test_name}_winner_{i + 1}', ''.join(output).find('winner') >= 0, did_win,
                                    data=[f'guessed letters: {input}', f'expected progression: {expected_progress}',
-                                         f'actual progression: {hidden_progress}']))
+                                         f'actual progression: {hidden_progress}'], show_actual_expected=False))
     return section
 
 
