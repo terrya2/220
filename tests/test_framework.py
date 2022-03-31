@@ -148,8 +148,8 @@ class Section(TestItem):
             print(f'{tabs}\tdata:')
             for line in self.group_data:
                 print(f'{tabs}\t\t{line}')
-        grade = score_to_letter(
-            self.earned_points * 100 / self.total_points) if self.letter_grades else f'{self.earned_points}/{self.total_points}'
+        score = 0 if self.total_points == 0 else self.earned_points * 100 / self.total_points
+        grade = score_to_letter(score) if self.letter_grades else f'{self.earned_points}/{self.total_points}'
         end_label = f' {self.name} end: {grade} '
         print('{0}{1:-^70}'.format(tabs, end_label))
 
@@ -188,7 +188,10 @@ class TestBuilder:
             'from.*os': 'no need for the os module. please remove it to continue.',
             'import.*pathlib': 'no need for the pathlib module. please remove it to continue.',
             'from.*pathlib': 'no need for the pathlib module. please remove it to continue.',
-            '\[.*for.*in.*\]': 'list comprehension is not allowed. please remove it to continue'
+            '\[.*for.*in.*\]': 'list comprehension is not allowed. please remove it to continue',
+            'with.*open': 'please open files using the techniques discussed in class',
+            '\..*write.*(.*)': 'please write to files using the techniques discussed in class',
+            'yield': 'we do not cover yield in this class. please remove it to continue'
         }
         self.file_name = file_name
         self.rc_file = '../../.pylintrc'
@@ -503,7 +506,8 @@ def build_IO_section(name, tests, expected, dynamic_tests, test_func, test_all_o
     return section
 
 
-def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, test_all_output=False, comp_func=None):
+def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, num_inputs=1, test_all_output=False,
+                            comp_func=None):
     """
     :param name: the name of the test
     :param tests: sequence of test inputs
@@ -511,6 +515,7 @@ def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, tes
     :dynamic_tests: dict of additional tests
         {'test':[more test inputs, ...], 'expected':[more expected outputs, ...]}
     :test_func: the function being tested
+    :num_inputs: how many inputs to ignore in the output
     :test_all_ouptus: compares expected list to entire output list
     """
     section = Section(name)
@@ -531,7 +536,7 @@ def build_IO_string_section(name, tests, expected, dynamic_tests, test_func, tes
             test = Test(test_name, True, False, exception_message='No output',
                         data=[f'inputs: {tests[i]}', f'expected: {ex}'], show_actual_expected=False)
         else:
-            final_output = ''.join(output[2:])
+            final_output = ''.join(output[num_inputs:])
             try:
                 test = Test(test_name, final_output, ex, data=[f'inputs: {tests[i]}'], comp_func=comp_func)
             except:
@@ -557,3 +562,10 @@ def make_random_sentence(words=5, word_min=1, word_max=7):
     for i in range(words):
         sentence.append(get_random_string(word_min, word_max))
     return ' '.join(sentence)
+
+
+def delta_comp_func(error_range):
+    def a(actual, expected):
+        return abs(float(actual) - float(expected)) < error_range
+
+    return a

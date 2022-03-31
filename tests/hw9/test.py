@@ -1,184 +1,263 @@
-import random
+import os
+from pathlib import Path
 
-from graphics import GraphWin, Point, Rectangle, Text
-
-from hw9.button import Button
+import hw9
 from tests.test_framework import *
 
-win = GraphWin("Three Door Game", 600, 600)
+TEST_DIR = Path(os.path.dirname(__file__))
 
 
 def main():
-    builder = TestBuilder('button', 'button.py', 12)
-    builder.add_lint_test('three_door_game.py', 10)
-    constructor_section, instance_vars_section, methods_section = build_sections()
-    builder.add_items(constructor_section, instance_vars_section, methods_section)
+    builder = TestBuilder("hw 9", 'hw9.py', linter_points=20, default_test_points=2)
+    builder.add_items(build_get_words_test(10))
+    builder.add_items(build_get_random_word_test(10))
+    builder.add_items(build_letter_in_secret_word_test(10))
+    builder.add_items(build_already_guessed_test(10))
+    builder.add_items(build_make_hidden_secret_test(10))
+    builder.add_items(build_won_test(10))
+    builder.add_items(build_playing_test())
     builder.run()
 
 
-def build_sections():
-    LABEL = "OK"
-    rec_point_a = Point(1, 2)
-    rec_point_b = Point(3, 4)
-    rec = Rectangle(rec_point_a, rec_point_b)
-
-    # Test Constructor
-    constructor_section = Section("constructor")
-    my_button = None
-    try:
-        my_button = Button(rec, LABEL)
-        constructor_section.add_items(Test('initialize constructor', True, True))
-    except Exception as e:
-        print('\nFAILED: Could not initialize Button, no more test will run.')
-        sys.exit(1)
-
-    # test instance variables
-    instance_vars_section = Section('instance variables')
-    # shape
-    instance_vars_section.add_items(
-        Test("instance variable shape type", lambda: type(my_button.shape), Rectangle))
-
-    instance_vars_section.add_items(Test("instance variable shape value", lambda: my_button.shape, rec))
-    # text
-    instance_vars_section.add_items(Test("instance variable text type", lambda: type(my_button.text), Text))
-    instance_vars_section.add_items(Test("instance variable text value", lambda: my_button.text.getText(), LABEL))
-
-    # test methods
-    methods_section = Section('methods')
-    # get_label
-    label_test = Test("get_label", lambda: my_button.get_label(), LABEL)
-
-    # draw
-
-    def try_draw():
-        my_button.draw(win)
-        drawn_rect = None
-        drawn_text = None
-        for item in win.items:
-            if type(item) == Rectangle: drawn_rect = item
-            if type(item) == Text: drawn_text = item
-        return rec == drawn_rect and drawn_text and drawn_text.getText() == LABEL
-
-    draw_test = Test('draw rectangle and text', try_draw, True)
-
-    # undraw
-    def try_undraw():
-        my_button.undraw()
-        return len(win.items)
-
-    undraw_test = Test('undraw', try_undraw, 0)
-
-    methods_section.add_items(label_test, draw_test, undraw_test)
-
-    # is_clicked
-    click_check_one, click_check_two = build_is_clicked_tests()
-    one_a_rect, one_b_rect, results_one = click_check_one
-    two_a_rect, two_b_rect, results_two = click_check_two
-    one_true_points, one_false_points = results_one[True], results_one[False]
-    two_true_points, two_false_points = results_two[True], results_two[False]
-
-    def try_click(rect, points, truth):
-        # returns the value that is_clicked returns
-        button = Button(rect, "test")
-        for point in points:
-            if not button.is_clicked(point) == truth:
-                return not truth
-        return truth
-
-    is_clicked_subsection = Section('is_clicked()')
-
-    def click_data(rect, points):
-        return [f'click points: {points}', f'button dimensions: p1: {rect.getP1()}, p2: {rect.getP2()}']
-
-    is_clicked_subsection.add_items(
-        Test('click test true', lambda: try_click(one_a_rect, one_true_points, True), True,
-             data=click_data(one_a_rect, one_true_points)),
-        Test('click test true', lambda: try_click(one_b_rect, one_true_points, True), True,
-             data=click_data(one_b_rect, one_true_points)),
-        Test('click test false', lambda: try_click(one_a_rect, one_false_points, False), False,
-             data=click_data(one_a_rect, one_false_points)),
-        Test('click test false', lambda: try_click(one_b_rect, one_false_points, False), False,
-             data=click_data(one_b_rect, one_false_points)),
-        Test('click test true', lambda: try_click(two_a_rect, two_true_points, True), True,
-             data=click_data(two_a_rect, two_true_points)),
-        Test('click test true', lambda: try_click(two_b_rect, two_true_points, True), True,
-             data=click_data(two_b_rect, two_true_points)),
-        Test('click test false', lambda: try_click(two_a_rect, two_false_points, False), False,
-             data=click_data(two_a_rect, two_false_points)),
-        Test('click test false', lambda: try_click(two_b_rect, two_false_points, False), False,
-             data=click_data(two_b_rect, two_false_points))
-    )
-
-    def try_color_button(button_color):
-        button = Button(Rectangle(Point(1, 2), Point(3, 4)), 'test')
-        button.color_button(button_color)
-        return button.shape.config["fill"]
-
-    # color_button
-    color_button_subsection = Section('color_button()')
-    colors = ["green", "red", "purple", "violet", "orange", "yellow", "thetimehascome", "blue"]
-    color = gen(colors)
-    for i in range(len(colors)):
-        color_button_subsection.add_items(Test('color button', lambda: try_color_button(next(color)), next(color)))
-
-    # set_label
-    def try_set_label(label):
-        button = Button(Rectangle(Point(1, 2), Point(3, 4)), 'test')
-        button.set_label(label)
-        return button.text.getText()
-
-    set_label_subsection = Section('set_label()')
-    label = gen(colors)
-    for i in range(len(colors)):
-        set_label_subsection.add_items(Test('set label', lambda: try_set_label(next(label)), next(label)))
-
-    methods_section.add_items(is_clicked_subsection)
-    methods_section.add_items(color_button_subsection)
-    methods_section.add_items(set_label_subsection)
-
-    return (constructor_section, instance_vars_section, methods_section)
+def build_playing_test():
+    test_name = 'play_command_line'
+    section = Section(test_name)
+    # secret word, guesses, outputs, is winner
+    tests = [
+        ('hello', ['h', 'e', 'l', 'o'], ['_ _ _ _ _', 'h _ _ _ _', 'h e _ _ _', 'h e l l _', 'hello'],
+         True),
+        ('walrus', ['w', 'a', 'e', 'o', 't', 'l', 's', 'u', 'r'],
+         ['_ _ _ _ _ _', 'w _ _ _ _ _', 'w a _ _ _ _', 'w a _ _ _ _', 'w a _ _ _ _', 'w a _ _ _ _', 'w a l _ _ _',
+          'w a l _ _ s', 'w a l _ u s', 'walrus'],
+         True),
+        ('abide', ['a', 'e', 'i', 'o', 'u', 'y', 's', 'u', 'v', 'r'],
+         ['_ _ _ _ _', 'a _ _ _ _', 'a _ _ _ e', 'a _ i _ e', 'a _ i _ e', 'a _ i _ e', 'a _ i _ e', 'a _ i _ e',
+          'a _ i _ e', 'a _ i _ e'],
+         False),
+        ('register', ['r', 'e', 'e', 'n', 'u', 'y', 's', 'u', 'v', 'r', 'j', 'k'],
+         ['_ _ _ _ _ _ _ _', 'r _ _ _ _ _ _ r', 'r e _ _ _ _ e r', 'r e _ _ _ _ e r', 'r e _ _ _ _ e r',
+          'r e _ _ _ _ e r', 'r e _ _ _ _ e r', 'r e _ _ s _ e r', 'r e _ _ s _ e r', 'r e _ _ s _ e r',
+          'r e _ _ s _ e r', 'r e _ _ s _ e r'],
+         False),
+        ('lebowski', ['r', 's', 't', 'l', 'n', 'e', 'b', 'j', 'k', 'v', 'o', 'w', 'i'],
+         ['_ _ _ _ _ _ _ _', '_ _ _ _ _ _ _ _', '_ _ _ _ _ s _ _', '_ _ _ _ _ s _ _', 'l _ _ _ _ s _ _',
+          'l _ _ _ _ s _ _', 'l e _ _ _ s _ _', 'l e b _ _ s _ _', 'l e b _ _ s _ _', 'l e b _ _ s k _',
+          'l e b _ _ s k _', 'l e b o _ s k _', 'l e b o w s k _', 'lebowski'],
+         True),
+    ]
+    for i, test in enumerate(tests):
+        word = test[0]
+        input = test[1]
+        expected_progress = test[2]
+        did_win = test[3]
+        output, returned, errors = get_IO(lambda: hw9.play_command_line(word), input)
+        if errors:
+            section.add_items(
+                Test(f'{test_name}_{i + 1}', True, False, show_actual_expected=False, exception_message=errors,
+                     points=2))
+        elif not output:
+            section.add_items(
+                Test(f'{test_name}_{i + 1}', True, False, show_actual_expected=False, exception_message='No output',
+                     points=2))
+        else:
+            hidden_progress = [x for x in output if x.find('_') >= 0 or x.replace(' ', '') == word]
+            if did_win and hidden_progress:
+                last: str = hidden_progress[-1]
+                hidden_progress = hidden_progress[:-1]
+                hidden_progress.append(last.replace(' ', ''))
+            section.add_items(Test(f'{test_name}_progress_{i + 1}', hidden_progress, expected_progress,
+                                   data=[f'guessed letters: {input}', f'expected progression: {expected_progress}',
+                                         f'actual progression: {hidden_progress}'], show_actual_expected=False))
+            section.add_items(Test(f'{test_name}_winner_{i + 1}', ''.join(output).find('winner') >= 0, did_win,
+                                   data=[f'guessed letters: {input}', f'expected progression: {expected_progress}',
+                                         f'actual progression: {hidden_progress}'], show_actual_expected=False))
+    return section
 
 
-def build_is_clicked_tests():
-    """
-    returns a tuple of two tuples
-    ((rect, rect, {true: [click points], false: [click points]}), (rect, rect, {true: [click points], false: [click points]}))
-    """
-    # left top, right bottom
-    lt_x, lt_y = random.randint(1, 10), random.randint(10, 20)
-    rb_x, rb_y = random.randint(lt_x + 1, 20), random.randint(1, lt_y)
-    ltrb_rect = Rectangle(Point(lt_x, lt_y), Point(rb_x, rb_y))
-    ltrb_rect_2 = Rectangle(Point(rb_x, rb_y), Point(lt_x, lt_y))
-
-    # outside - left, top, right, bottom
-    ol, ot = Point(lt_x - 1, lt_y - 1), Point(lt_x + 1, lt_y + 1)
-    ori, ob = Point(rb_x + 1, lt_y - 1), Point(lt_x, rb_y - 1)
-    # on the line - left, top, right, bottom
-    oll, olt = Point(lt_x, random.uniform(rb_y, lt_y)), Point(random.uniform(rb_x, lt_x), lt_y)
-    olr, olb = Point(rb_x, random.uniform(rb_y, lt_y)), Point(random.uniform(lt_x, rb_x), rb_y)
-    # inside
-    inside_ltrb = Point(random.uniform(lt_x, rb_x), random.uniform(rb_y, lt_y))
-    one = (ltrb_rect, ltrb_rect_2, {True: [oll, olt, olr, olb, inside_ltrb], False: [ol, ot, ori, ob]})
-
-    # left bottom right top
-    lb_x, lb_y = random.randint(1, 10), random.randint(1, 10)
-    rt_x, rt_y = random.randint(lb_x + 1, 20), random.randint(lb_y + 1, 20)
-    lbrt_rect = Rectangle(Point(lb_x, lb_y), Point(rt_x, rt_y))
-    lbrt_rect_2 = Rectangle(Point(rt_x, rt_y), Point(lb_x, lb_y))
-
-    # outside - left, top, right, bottom
-    ol_lbrt, ot_lbrt = Point(lb_x - 1, rt_y - 1), Point(lb_x + 1, rt_y + 1)
-    or_lbrt, ob_lbrt = Point(rt_x + 1, rt_y - 1), Point(lb_x + 1, lb_y - 1)
-    # on the line - left, top, right, bottom
-    oll_lbrt, olt_lbrt = Point(lb_x, random.uniform(lb_y, rt_y)), Point(random.uniform(lb_x, rt_x), rt_y)
-    olr_lbrt, olb_lbrt = Point(rt_x, random.uniform(lb_y, rt_y)), Point(random.uniform(lb_x, rt_x), lb_y)
-    # inside
-    inside_lbrt = Point(random.uniform(lb_x, rt_x), random.uniform(lb_y, rt_y))
-    two = (lbrt_rect, lbrt_rect_2,
-           {True: [oll_lbrt, olt_lbrt, olr_lbrt, olb_lbrt, inside_lbrt], False: [ol_lbrt, ot_lbrt, or_lbrt, ob_lbrt]})
-
-    return (one, two)
+def build_won_test(n):
+    test_name = 'won'
+    section = Section(test_name)
+    odds = [True, True, True, True, False]
+    hidden_secrets = []
+    results = []
+    secret_words = []
+    for i in range(n):
+        secret_word = get_random_string().lower()
+        secret_words.append(secret_word)
+        hidden_secret = ''
+        won = True
+        for letter in secret_word:
+            if random.choice(odds):
+                hidden_secret += letter + ' '
+            else:
+                hidden_secret += '_ '
+                won = False
+        hidden_secret = hidden_secret[:-1]
+        hidden_secrets.append(hidden_secret)
+        results.append(won)
+    hidden_secrets_gen = gen(hidden_secrets)
+    results_gen = gen(results)
+    secret_word_gen = gen(secret_words)
+    for i in range(n):
+        section.add_items(Test(f'{test_name}_{i + 1}', lambda: hw9.won(next(hidden_secrets_gen)), next(results_gen),
+                               data=[f'guessed: {next(hidden_secrets_gen)}, secret word: {next(secret_word_gen)}']))
+    return section
 
 
-if __name__ == '__main__':
-    main()
+def build_make_hidden_secret_test(n):
+    test_name = 'make_hidden_secret'
+    section = Section(test_name)
+    odds = [True, True, True, False]
+    secret_words = []
+    hidden_secrets = []
+    guesses = []
+    for i in range(n):
+        secret_word = get_random_string().lower()
+        secret_words.append(secret_word)
+        hidden_secret = ''
+        guessed_letters = []
+        already_hidden_letters = []
+        for letter in secret_word:
+            if letter in guessed_letters:
+                hidden_secret += letter + ' '
+            elif random.choice(odds) and letter not in already_hidden_letters:
+                hidden_secret += letter + ' '
+                if letter not in guessed_letters:
+                    guessed_letters.append(letter)
+            else:
+                hidden_secret += '_ '
+                already_hidden_letters.append(letter)
+        hidden_secret = hidden_secret[:-1]
+        hidden_secrets.append(hidden_secret)
+        extra_guesses = random.randint(0, 5)
+        j = 0
+        while j < extra_guesses:
+            letter = get_random_letter().lower()
+            if letter not in secret_word and letter not in guessed_letters:
+                guessed_letters.append(letter)
+                j += 1
+        guesses.append(guessed_letters)
+    secret_words_gen = gen(secret_words)
+    hidden_secrets_gen = gen(hidden_secrets)
+    guesses_gen = gen(guesses)
+    for i in range(n):
+        section.add_items(
+            Test(f'{test_name}_{i + 1}', lambda: hw9.make_hidden_secret(next(secret_words_gen), next(guesses_gen)),
+                 next(hidden_secrets_gen),
+                 data=[f'secret word: {next(secret_words_gen)}', f'guesses: {next(guesses_gen)}']))
+    return section
+
+
+def build_already_guessed_test(n):
+    test_name = 'already_guessed'
+    section = Section(test_name)
+    guesses = []
+    unguesses = []
+    i = 0
+    while i < n:
+        random_letter = get_random_letter().lower()
+        if random_letter not in guesses:
+            guesses.append(random_letter)
+            i += 1
+    i = 0
+    while i < n:
+        random_letter = get_random_letter().lower()
+        if random_letter not in guesses:
+            unguesses.append(random_letter)
+            i += 1
+    letter_gen = gen(random.sample(guesses, n // 2))
+    for i in range(n // 2):
+        section.add_items(Test(f'{test_name}_{i + 1}', lambda: hw9.already_guessed(next(letter_gen), guesses), True,
+                               data=[f'letter: {next(letter_gen)}, guesses: {guesses}']))
+    unletter_gen = gen(random.sample(unguesses, n // 2))
+    for i in range(n // 2):
+        section.add_items(
+            Test(f'{test_name}_{i + n // 2 + 1}', lambda: hw9.already_guessed(next(unletter_gen), guesses), False,
+                 data=[f'letter: {next(unletter_gen)}, guesses: {guesses}']))
+    return section
+
+
+def build_letter_in_secret_word_test(n):
+    test_name = 'letter_in_secret_word'
+    section = Section(test_name)
+    word = get_random_string(n // 2, n // 2)
+    letter_gen = gen(list(word))
+    for i in range(len(word)):
+        section.add_items(Test(f'{test_name}_{i + 1}', lambda: hw9.letter_in_secret_word(next(letter_gen), word), True,
+                               data=[f'letter: {next(letter_gen)}, word: {word}']))
+    j = 0
+    un_letters = []
+    while j < n // 2:
+        un_letter = get_random_letter()
+        if un_letter not in word:
+            un_letters.append(un_letter)
+            j += 1
+    unletter_gen = gen(un_letters)
+    for k in range(len(un_letters)):
+        section.add_items(
+            Test(f'{test_name}_{k + n // 2 + 1}', lambda: hw9.letter_in_secret_word(next(unletter_gen), word),
+                 False,
+                 data=[f'letter: {next(unletter_gen)}, word: {word}']))
+    return section
+
+
+def build_get_random_word_test(n):
+    section = Section('get_random_word')
+    words = []
+    for i in range(n):
+        number_of_words = random.randint(1, 5)
+        word_list = []
+        for j in range(number_of_words):
+            word = get_random_string()
+            word_list.append(word + '\n')
+        words.append(word_list)
+    word_gen = gen(words)
+    for i in range(n):
+        word_list = next(word_gen)
+        wl_no_newline = [x[:-1] for x in word_list]
+        wl = [x[:-1] for x in word_list]
+        removed = []
+        error = None
+        for j in range(500):
+            outcome, result = run_safe(lambda: hw9.get_random_word(word_list))
+            if not outcome:
+                error = result
+                break
+            if result not in removed:
+                try:
+                    wl.remove(result)
+                    removed.append(result)
+                except ValueError:
+                    error = f'returned result {result.encode("unicode_escape").decode("utf-8")} not in expected list {wl_no_newline}'
+                    break
+            if len(wl) == 0:
+                break
+        if error:
+            data = [error]
+        else:
+            data = [f'words input: {word_list}', f'words not returned: {wl}']
+        section.add_items(Test(f'get_random_word_{i + 1}', len(wl) == 0, True, data=data, show_actual_expected=False))
+    return section
+
+
+def build_get_words_test(n):
+    section = Section('get_words')
+    words = []
+    file_names = []
+    for i in range(n):
+        file_name = f'get_words_test_{i}'
+        file_names.append(TEST_DIR / file_name)
+        file = open(TEST_DIR / f'{file_name}', 'w')
+        word_count = random.randint(1, 5)
+        word_list = []
+        for j in range(word_count):
+            word = get_random_string()
+            print(word, file=file)
+            word_list.append(word + '\n')
+        words.append(word_list)
+    file_name_gen = gen(file_names)
+    word_gen = gen(words)
+    for i in range(n):
+        section.add_items(Test(f'get_words_{i + 1}', lambda: hw9.get_words(next(file_name_gen)), next(word_gen)))
+
+    return section
