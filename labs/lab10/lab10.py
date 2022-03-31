@@ -1,6 +1,6 @@
 """
 Autumn Terry
-lab9.py
+lab10.py
 Create a program with classes and objects
 I certify that this assignment is my own work, but I discussed it with: Margaret Kimery
 
