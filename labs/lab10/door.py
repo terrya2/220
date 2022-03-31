@@ -1,0 +1,55 @@
+"""
+Autumn Terry
+door.py
+Create a program with classes and objects
+I certify that this assignment is my own work, but I discussed it with: Margaret Kimery
+"""
+
+from graphics import *
+
+class Door:
+    def __init__(self, shape, label):
+        self.shape = shape
+        self.text = Text(shape.getCenter(), label)
+        self.secret = False
+
+    def get_label(self):
+        door_label = self.text.getText()
+        return door_label
+
+    def set_label(self, label):
+        self.text.setText(label)
+
+    def draw(self,win):
+        self.shape.draw(win)
+        self.text.draw(win)
+
+    def undraw(self, win):
+        self.shape.undraw()
+        self.text.undraw()
+
+    def is_clicked(self,point):
+        point1 = self.shape.getP1()
+        point2 = self.shape.getP2()
+
+        if point1.getX() <= point.getX() <= point2.getX() and point1.getY() <= point.getY <= point2.getY():
+            return True
+        else:
+            return False
+
+    def open(self, color, label):
+        self.shape.setFill(color)
+        self.text.setText(label)
+
+    def close(self, color, label):
+        self.shape.setFill(color)
+        self.text.setText(label)
+
+    def color_door(self, color):
+        self.shape.setFill(color)
+
+    def is_secret(self):
+        return self.secret
+
+    def set_secret(self, secret):
+        self.secret = secret
