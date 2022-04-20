@@ -5,6 +5,7 @@ Create a function that uses numeric information from a text file.
 I certify that this assignment is entirely my own work.
 """
 
+
 def weighted_average(in_file_name, out_file_name):
     file = open(in_file_name, "r")
     new_file = open(out_file_name, "w")
@@ -15,7 +16,9 @@ def weighted_average(in_file_name, out_file_name):
         index = info[i]
         colon = index.find(":")
         first_part = index[:colon]
-        second_part = index[:colon + 2:]
+        second_part = index[colon + 2: len(index) - 1]
+        #print(first_part)
+        #print(second_part)
         info_list = second_part.split()
         length = len(info_list)
         denominator = length / 2
@@ -27,13 +30,18 @@ def weighted_average(in_file_name, out_file_name):
             grade = eval(info_list[j + 1])
             total_weight = total_weight + weight
             total_grade = total_grade + grade
-            class_avg = class_avg + (weight * grade)
+            class_avg = class_avg + (weight * grade) + (weight * grade) + (weight * grade)
         if total_weight == 100:
-            print(first_part + "'s average:", round((total_grade / denominator), 1))
+            ans_individual = (first_part + "'s average:", round((total_grade / denominator), 1))
+            new_file.write(str(ans_individual))
         elif total_weight < 100:
-            print(first_part + "'s average: Error: The weights are less than 100.")
+            ans_total = (first_part + "'s average: Error: The weights are less than 100.")
+            new_file.write(str(ans_total))
         else:
-            print(first_part + "'s average: Error: The weights are more than 100.")
-    print("Class average:", class_avg / 100)
+            ans_weight = (first_part + "'s average: Error: The weights are more than 100.")
+            new_file.write(str(ans_weight))
+
+    ans = "Class average:", class_avg / 100
+    new_file.write(str(ans))
     file.close()
     new_file.close()
